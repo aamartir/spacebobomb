@@ -81,6 +81,8 @@ public class PlayerShip extends SpaceShip
 			super.setVelocity(SHIP_MAX_VEL);
 		if(key == KeyEvent.VK_S)
 			super.setVelocity(-SHIP_MAX_VEL);
+		if(key == KeyEvent.VK_SPACE)
+			super.fireMissile();
 	}
 	
 	public void keyReleased(KeyEvent e)
