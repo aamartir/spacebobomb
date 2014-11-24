@@ -2,12 +2,12 @@ package spaceGame;
 
 // For Drawing
 import javax.swing.JFrame;
+
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.image.BufferStrategy;
 import java.awt.Color;
 import java.awt.Font;
-
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -16,6 +16,10 @@ import java.awt.event.KeyEvent;
 //import java.awt.event.ActionListener;
 //import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.weapons.Weapon;
 
@@ -39,9 +43,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	int framesInCurrentTimeSlice;
 	int framesInLastTimeSlice;
 	
+	private RenderThread renderThread;
 	private PlayerShip playerShip;
 	private boolean inGame;
-	
+	private ScheduledExecutorService scheduler;
 	public static void main( String[] args )
 	{
 		new Game();
@@ -76,6 +81,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		addKeyListener(new TAdapter());
 		//addMouseListener(this);
 
+		scheduler = Executors.newScheduledThreadPool(1);
+		
 		// Game loop (stays here for ever)
 		gameLoop();
 	}
@@ -83,6 +90,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	// Game loop
 	public void gameLoop()
 	{
+		
 		inGame = true;
 		
 		// Initialize spaceships
@@ -93,23 +101,30 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		lastTime = System.nanoTime();
 		
 		// game loop
-		while( inGame )
-		{
+		/*while( inGame )
+		{*/
+		renderThread = new RenderThread();
+		
+		final ScheduledFuture<?> handle = scheduler.scheduleAtFixedRate(renderThread, 0, secondsPerFrame, TimeUnit.MILLISECONDS);
+		
 			// Get delta time
-			dt = (System.nanoTime() - lastTime)/1000000.0; // Time in milliseconds
 			
-			// Limit game logic and drawing to framesPerSecond
-			if( dt > secondsPerFrame )
-			{
-				gameLogic( 5*dt );
-				gameDraw();
-				
-				// Record last time
-				lastTime = System.nanoTime();
-			}
-		}
+		//}
 	}
 	
+	class RenderThread implements Runnable{
+		public void run()
+		{
+			dt = (System.nanoTime() - lastTime)/1000000.0; // Time in milliseconds
+			
+			gameLogic( dt );
+			gameDraw();
+				
+			// Record last time
+			lastTime = System.nanoTime();
+			
+		}
+	}
 	// Game logic 
 	public void gameLogic( double dt )
 	{

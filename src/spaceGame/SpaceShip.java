@@ -30,10 +30,10 @@ public class SpaceShip extends SpaceObject
 	private static AffineTransform savedTransform;
 	
 	// Some initial constants
-	public static final double SPACESHIP_TURNING_RATE            = 0.03;
-	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.000005;
-	public static final double SPACESHIP_MAX_SPEED               = 0.03; // Natural velocity (without boosters)
-	public static final double SPACESHIP_MAX_THRUST              = 0.000003;
+	public static final double SPACESHIP_TURNING_RATE            = 0.3;
+	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.0005;
+	public static final double SPACESHIP_MAX_SPEED               = 0.3; // Natural velocity (without boosters)
+	public static final double SPACESHIP_MAX_THRUST              = 0.0003;
 	public static final double SPACESHIP_THRUST_FRICTION         = 0.00005; // Affects linear motion
 	public static final double SPACESHIP_ANGULAR_THRUST_FRICTION = 0.0005;  // Affects angular motion
 	public static final double SPACESHIP_MASS                    = 1.0;
