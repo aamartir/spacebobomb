@@ -2,9 +2,12 @@ package spaceGame;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 
@@ -23,224 +26,145 @@ import com.weapons.Weapon;
 
 public class SpaceShip extends SpaceObject
 {
-	private static AffineTransform transform;
+	private AffineTransform transf;
+	private static AffineTransform savedTransform;
 	
-	// Target for follower missiles
-	private SpaceObject target;
-	private boolean targeted;
+	// Some initial constants
+	public static final double SPACESHIP_TURNING_RATE            = 0.03;
+	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.000005;
+	public static final double SPACESHIP_MAX_SPEED               = 0.03; // Natural velocity (without boosters)
+	public static final double SPACESHIP_MAX_THRUST              = 0.000003;
+	public static final double SPACESHIP_THRUST_FRICTION         = 0.00005; // Affects linear motion
+	public static final double SPACESHIP_ANGULAR_THRUST_FRICTION = 0.0005;  // Affects angular motion
+	public static final double SPACESHIP_MASS                    = 1.0;
+	public static final int    SPACESHIP_MAX_HP                  = 100;
+	public static final int    SPACESHIP_MAX_FUEL                = 100;
 	
-	// Weapons
-	//private ArrayList<Missile> missileArr;
-	//private ArrayList<PlasmaBomb> bombArr;
-	//private ArrayList<SeekMissile> seekMissileArr;
-	private ArrayList<Weapon> weaponArr;
+	// Possible spaceship bodies
+	public static final String SPACESHIP_01  = "shipBlue.png";
+	public static final String SPACESHIP_02  = "shipStyle3_small.png";
+	public static final String SPACESHIP_03  = "shipRed.png";
 	
-	//private Explosion expl; // Explosion object if a ship if destroyed
-	private SpaceShipTrail trail; // the trail ships make as they move through space (due to boosters)
-	private int lastX;
-	private int lastY;
-	private int MAX_MISSILES;
-	private int MAX_BOMBS;
-	private int MAX_SEEK_MISSILES;
-	private int bombCounter;
-	private int missileCounter;
-	private int seekMissileCounter;
-	private int life;
-	private int MAX_LIFE;
+	// Possible spaceship booster images
+	//public static final String SHIP_EXHAUST_01 = "exhaust_01.png";
 	
-	// Booster variables
-	private double boosterFuel; //
-	private double MAX_BOOSTER_FUEL; //
-	private boolean usingBoosters;
-	private double BOOSTER_VEL_MULT = 2.0;
+	// Images associated with spaceShip
+	private ImageIcon exhaustImg;
 	
-	private double rotation;
+	// SpaceShip's current parameters
+	private double thrust;
+	private double angularThrust;
+	private int    life;
+	private double fuel;
 	
-	// Message to display
+	// SpaceShip's absolute parameters
+	private int    maxLife;
+	private double maxSpeed;
+	private double maxThrust;
+	private double maxAngularThrust; // angular acceleration
+	private double maxTurningRate; // angular speed
+	private double maxFuel;
+	
+	// Status messages to display on top of spaceship 
 	private ArrayList<ShipStatusMessage> msgArr;
-	ShipStatusMessage thisMessage;
-	ShipStatusMessage lastMessage;
-	boolean next = false;
-	
-	public static final String PATH = "/resources/";
-	public static final String SPACESHIP_BLUE = "shipBlue.png";
-	public static final String SPACESHIP_GREEN = "shipStyle3_small.png";
-	public static final String SPACESHIP_RED = "shipRed.png";
-	public static final double TURNING_RATE = 0.3;
-	public static final double SHIP_MAX_VEL = 0.12; // Natural velocity (without boosters)
 
-	public SpaceShip(String PATH, String type, int x, int y, double vel, double angle)
+	public SpaceShip( String spaceshipType, int x, int y, double v_x, double v_y, double initialAngle, double mass )
 	{
-		super(PATH, type, x, y, vel, angle);
+		super( spaceshipType, x, y, v_x, v_y, initialAngle, mass );
+
+		// Set exhaust image
+		//exhaustImg = SpaceObject.getImgResource( SHIP_EXHAUST_01 );
 		
-		super.setDestroyed(false);
-		super.setMaxTurningRate(TURNING_RATE);
-		
-		//weapons
-		//missileArr = new ArrayList<Missile>();
-		//bombArr = new ArrayList<PlasmaBomb>();
-		weaponArr = new ArrayList<Weapon>();
-		
-		msgArr = new ArrayList<ShipStatusMessage>();
-		trail = new SpaceShipTrail(3);
-		lastX = (int) getPosX();
-		lastY = (int) getPosY();
-		
-		// Max number of each weapon type
-		MAX_MISSILES = 5;
-		MAX_SEEK_MISSILES = 5;
-		MAX_BOMBS = 5;
-		
-		// Weapon Counter
-		bombCounter = 0; //MAX_BOMBS;
-		seekMissileCounter = 0;//MAX_SEEK_MISSILES;
-		missileCounter = 0;
-		
-		MAX_LIFE = 100;
-		life = MAX_LIFE;
-		rotation = 0;
-		targeted = false;
-		
-		/////
-		MAX_BOOSTER_FUEL = 100;
-		boosterFuel = MAX_BOOSTER_FUEL;
-		usingBoosters = false;
+		// Spaceship parameters
+		maxLife          = SPACESHIP_MAX_HP;
+		maxFuel          = SPACESHIP_MAX_FUEL;
+		maxSpeed         = SPACESHIP_MAX_SPEED;
+		maxThrust 	     = SPACESHIP_MAX_THRUST;
+		maxTurningRate   = SPACESHIP_TURNING_RATE; // degrees per second 
+		maxAngularThrust = SPACESHIP_MAX_TURNING_THRUST;
+		life             = maxLife;
+		fuel             = maxFuel;
+		thrust           = 0;
+		angularThrust    = 0;
+	}
+	
+	public double getMaxTurningRate()
+	{
+		return maxTurningRate;
 	}
 
-	// Only called when B is pressed or released. Does not decrease Booster Fuel continuously (as it should)
-	public void affectMovement()
+	public double getMaxThrust()
 	{
-		//System.out.println("hasBoosterFuel() = " + hasBoosterFuel() + ". isUsingBoosters() = " + isUsingBoosters());
-		if(hasBoosterFuel() && isUsingBoosters())
-		{
-			super.setMaxVelocity(super.getDirection()*SHIP_MAX_VEL*BOOSTER_VEL_MULT); // Increase Max Velocity
-			super.setVelocity(super.getMaxVelocity());
-		}
-		else
-		{
-			super.setMaxVelocity(super.getDirection()*SHIP_MAX_VEL); // Bring Max velocity to the normal
-			super.setVelocity(super.getMaxVelocity());
-		}
-		
-		if(!hasBoosterFuel())
-			FrontPanel.getSkillSpace(Skill.BOOSTERS_SKILL).getSkill().setImage(Skill.BOOSTERS_IMG);
+		return maxThrust;
 	}
 	
-	public void move()
+	public void setSpaceShipThrust( double newThrust )
 	{
-		//if(this instanceof PlayerShip)
-			affectMovement(); // Affects the movement due to boosters
-		
-		super.move();
-		rotate(); // local function
-		
-		// Decrease booster fluid if being used
-		//if(this instanceof PlayerShip)
-		//{
-			// Subtract booster fuel. Fuel is added over time.
-			if(isUsingBoosters())
-				addBoosterFuel(-0.05);
-		//}
-		
-		// Everytime a Ship moves, it leaves a trail
-		if(Math.abs(super.getVelocity()) > 0 && distanceBetweenPoints((int) getPosX(), (int) getPosY(), lastX, lastY) > 4)
-		{
-			//if(isUsingBoosters())
-			//	trail.addTrailComponent(new Color(220, 0, 10), (int) getPosX(), (int) getPosY()); // Grayish color
-			//else
-				double theta = getAngleRad();
-				//trail.addTrailComponent(Color.gray, (int) (getPosX()-getImgWidth()*Math.cos(theta)/1.5+getImgWidth()/3), (int) (getPosY()-getImgHeight()*Math.sin(theta)/3+getImgHeight()/2.5)); // Grayish color
-				trail.addTrailComponent(Color.gray, 
-								       (int) (getPosX() + getImgWidth()/2 - 5 - getImgHeight()/3*Math.cos(theta)),
-								       (int) (getPosY() + getImgHeight()/2 - 5 - getImgHeight()/3*Math.sin(theta)));
-				
-				//g2d.fillOval((int) (craft.getPosX()-craft.getImgWidth()*Math.cos(craft.getAngleRad())+craft.getImgWidth()/3), (int) (craft.getPosY()-craft.getImgHeight()*Math.sin(craft.getAngleRad())/2+craft.getImgHeight()/2.5), 10, 10);
+		if( newThrust > maxThrust )
+			newThrust = maxThrust;
 
-			// Update last location
-			lastX = (int) getPosX();
-			lastY = (int) getPosY();
-		}
+		thrust = newThrust;
 	}
-	
-	public void addBomb()
-	{
-		bombCounter--;
-		
-		if(bombCounter < 0)
-			bombCounter = 0;
-	}
-	
-	public void addBombs(int num)
-	{
-		bombCounter -= num;
 
-		if(bombCounter < 0)
-			bombCounter = 0;
+	public double getMaxAngularThrust()
+	{
+		return maxAngularThrust;
+	}
+	
+	public void setSpaceShipAngularThrust( double newAngularThrust )
+	{
+		angularThrust = newAngularThrust;
 		
-		// Make AreaBomb Panel Icon available for player
-		if(this instanceof PlayerShip)
-		{
-			SkillSpace bombSpace = FrontPanel.getSkillSpace(Skill.AREA_BOMB_SKILL);
-			if(bombSpace != null) // if it's not null, it must be binded. So we don't need to check
-			{
-				bombSpace.getSkill().setAvailable(true);
-			}
-		}
+		if( angularThrust > maxAngularThrust )
+			angularThrust = maxAngularThrust;
+		else if( angularThrust < -maxAngularThrust )
+			angularThrust = -maxAngularThrust;
+		
+		super.setRotationDegPerSecSquared( angularThrust );
+	}
+		
+	public void updateSpaceShipMotion( double dt )
+	{
+		// Set acceleration (based on angle)
+		super.setAcceleration( thrust * Math.cos(Math.toRadians(getAngle())),
+							   thrust * Math.sin(Math.toRadians(getAngle())) );
+		
+		// Call the method of the super class
+		super.updateSpaceObjectMotion( maxSpeed, maxTurningRate, SPACESHIP_THRUST_FRICTION, SPACESHIP_ANGULAR_THRUST_FRICTION, dt );
 	}
 	
-	public void setTarget(SpaceObject obj)
+	public double getSpaceShipAcceleration()
 	{
-		//assert(obj != null);
-		target = obj;
-	}
-	
-	public SpaceObject getTarget()
-	{
-		return target;
-	}
-	
-	public boolean isTargeted()
-	{
-		return targeted;
-	}
-	
-	public void setTargeted(boolean val)
-	{
-		this.targeted = val;
+		return ( super.getAccelMagnitude() );
 	}
 	
 	public void destroy()
 	{
-		setLife(0);
+		this.setCurrentLife(0);
 		super.explode();
 		
+		// Play sound effect
 		SFX_Player.playSound(SFX_Player.SPACE_SOUND_PATH, SFX_Player.IMPLOSION_01);
 		
+		/*
 		if(this instanceof PlayerShip)
 		{
 			FrontPanel.deactivatePanel();	
-			Board.inGame = false;
+			//Game.inGame = false;
 		}
+		*/
 	}
-	
-	private static double distanceBetweenPoints(int x1, int y1, int x2, int y2)
-	{
-		return Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-	}
-	
-	public void drawTrail(Graphics2D g2d)
-	{
-		if(trail != null && trail.hasTrailComponents())
-			trail.drawTrail(g2d);
-	}
-	
+
+	/*
 	public double getFuelCapacity()
 	{
 		return MAX_BOOSTER_FUEL;
 	}
+	*/
 	
 	public void addBoosterFuel(double val) // Function can also be used to subtract fuel
 	{
+		/*
 		boosterFuel += val;
 		//newMessage("+" + val+ " Fuel", new Color(0, 0, 255));
 		
@@ -248,37 +172,18 @@ public class SpaceShip extends SpaceObject
 			boosterFuel = 0;
 		else if(boosterFuel > MAX_BOOSTER_FUEL)
 			boosterFuel = MAX_BOOSTER_FUEL;
-	}
-	
-	public void setRotation(double r)
-	{
-		rotation = r;
-	}
-	
-	public double getRotation()
-	{
-		return rotation;
-	}
-	
-	public boolean isUsingBoosters()
-	{
-		return usingBoosters;
+		 */
 	}
 	
 	public boolean hasBoosterFuel()
 	{
-		if(boosterFuel > 0)
-			return true;
-		else
-		{
-			usingBoosters = false;
-			return false;
-		}
+		return false;
 	}
 	
 	// Use/stop boosters affect the velocity of the craft
 	public void useBoosters()
 	{
+		/*
 		if(hasBoosterFuel())
 		{
 			FrontPanel.getSkillSpace(Skill.BOOSTERS_SKILL).getSkill().setAvailable(true);
@@ -291,14 +196,18 @@ public class SpaceShip extends SpaceObject
 			FrontPanel.getSkillSpace(Skill.BOOSTERS_SKILL).getSkill().setImage(Skill.BOOSTERS_IMG);
 			usingBoosters = false;
 		}
+		*/
 	}
 	
 	public void stopBoosters()
 	{
+		/*
 		FrontPanel.getSkillSpace(Skill.BOOSTERS_SKILL).getSkill().setImage(Skill.BOOSTERS_IMG);
 		usingBoosters = false;
+		*/
 	}
 	
+	/*
 	public double getFuel()
 	{
 		return boosterFuel;
@@ -309,6 +218,7 @@ public class SpaceShip extends SpaceObject
 		if(val >= 0 && val <= MAX_BOOSTER_FUEL)
 			boosterFuel = val;
 	}
+	*/
 	
 	public int hasMessages()
 	{
@@ -317,10 +227,10 @@ public class SpaceShip extends SpaceObject
 	
 	public void flushAllMessages()
 	{
-		msgArr = new ArrayList<ShipStatusMessage>();
+		msgArr.clear();
 	}
 	
-	public void newMessage(String msg, Color c)
+	public void newMessage( String msg, Color c )
 	{
 		msgArr.add(new ShipStatusMessage(msg, c));
 	}
@@ -332,11 +242,12 @@ public class SpaceShip extends SpaceObject
 	
 	public void rotate()
 	{
-		super.rotate(rotation);
+		//super.rotate(rotation);
 	}
 	
 	public void fireMissile()
 	{
+		/*
 		if(missileCounter < MAX_MISSILES && !isDestroyed())
 		{
 			weaponArr.add(new Missile((int) (super.getPosX() + super.getImgWidth()/2), 
@@ -345,10 +256,12 @@ public class SpaceShip extends SpaceObject
 						 			   super.getAngle()));
 			missileCounter++;
 		}
+		*/
 	}
 	
 	public void fireBomb()
 	{
+		/*
 		if(bombCounter < MAX_BOMBS && !isDestroyed())
 		{
 			weaponArr.add(new PlasmaBomb((int) (super.getPosX() + super.getImgWidth()/2), 
@@ -362,10 +275,12 @@ public class SpaceShip extends SpaceObject
 		// If there's no more area bombs left, deactivate the skill panel icon
 		if(!hasBombsLeft() || isDestroyed())
 			FrontPanel.getSkillSpace(Skill.AREA_BOMB_SKILL).getSkill().setAvailable(false);
+		*/
 	}
 	
 	public void fireSeekingMissile()
 	{
+		/*
 		if(seekMissileCounter < MAX_SEEK_MISSILES && !isDestroyed())
 		{
 			if(target != null)
@@ -384,24 +299,87 @@ public class SpaceShip extends SpaceObject
 		
 		if(!hasSeekMissilesLeft() || isDestroyed())
 			FrontPanel.getSkillSpace(Skill.SEEK_MISSILE_SKILL).getSkill().setAvailable(false);
+		*/
 	}
 	
 	/*public void drawExplotion(Graphics2D g2d)
 	{
-		expl.setPosX(getPosX());
+		expl.setPosX(getwPosX());
 		expl.setPosY(getPosY());
 		expl.drawExplotion(g2d);
 	}*/
 	
-	public void drawShipData(Graphics2D g2d, int intent)
+	// This needs optimizing
+	public void drawThrustExhaust( Graphics g, boolean drawLeftExhaust, boolean drawRightExhaust )
 	{
-		// Draw Life and Missiles Left on the upper left corner
-		//drawIntention(g2d, intent);
-		drawLifeBar(g2d);
-		drawBombsLeft(g2d);
+		Graphics2D g2d = ( Graphics2D )g;
 		
-		if(hasMessages() > 0)
-			drawStatusMessages(g2d);
+		Shape exhaustShape;
+		int exhaustWidth = 10;
+		int exhaustHeight = 5;
+		
+		savedTransform = g2d.getTransform();
+
+		// Left exhaust
+		g.setColor( new Color(0, 191, 255) );
+		
+		// Apply rotation matrix
+		if( drawLeftExhaust || drawRightExhaust )
+		{
+			g2d.rotate(Math.toRadians( super.getAngle() ), 
+			           super.getPosX() + super.getImgWidth()/2,
+			           super.getPosY() + super.getImgHeight()/2);
+		}
+		
+		if( drawLeftExhaust )
+		{
+			exhaustShape = new Ellipse2D.Double( (int)(super.getPosX() - exhaustWidth), 
+				                                 (int)(super.getPosY() + super.getImgHeight()/2 - exhaustHeight/2 - 5), 
+				                                  exhaustWidth,   // Width 
+				                                  exhaustHeight ); // height
+			
+		    g2d.fill( exhaustShape );
+		    g2d.draw( exhaustShape ); //g2d.draw( transf.createTransformedShape(r1) );
+		}
+	    
+	
+		// Right exhaust
+		if( drawRightExhaust )
+		{
+			exhaustShape = new Ellipse2D.Double( (int)(super.getPosX() - exhaustWidth), 
+	                                             (int)(super.getPosY() + super.getImgHeight()/2 - exhaustHeight/2 + 5), 
+	                                              exhaustWidth,   // Width 
+	                                              exhaustHeight ); // height
+			
+			g2d.fill( exhaustShape );
+			g2d.draw( exhaustShape ); //g2d.draw( transf.createTransformedShape(r1) ); 
+		}
+		
+		// Restore transformation matrix
+		g2d.setTransform( savedTransform );
+	}
+	
+	public void drawSpaceShip( Graphics g )
+	{
+		boolean le = false;
+		boolean re = false;
+		
+		// Draw Life and Missiles Left on the upper left corner
+		super.drawSpaceObject( g );
+		drawLifeBar( g );
+
+		if( super.getRotationDegPerSecSquared() > 0 )
+			le = true;
+		else if( super.getRotationDegPerSecSquared() < 0 )
+			re = true;
+		
+		if( thrust > 0 )
+			le = re = true;
+		
+		drawThrustExhaust( g, le, re );
+		
+		//if(hasMessages() > 0)
+		//	drawStatusMessages(g2d);
 		
 		/*if(this instanceof AlienShip)
 		{
@@ -423,6 +401,7 @@ public class SpaceShip extends SpaceObject
 	
 	private void drawBombsLeft(Graphics2D g2d) 
 	{
+		/*
 		int xIncr = 0;
 		
 		for(int i = 0; i < getNumberOfBombsLeft(); i++)
@@ -431,15 +410,16 @@ public class SpaceShip extends SpaceObject
 			g2d.fillOval((int) (getPosX()-getImgWidth()/2 + xIncr), (int) (getPosY()-getImgHeight()/4-10), 5, 5);
 			xIncr += 8;
 		}
+		*/
 	}
 
-	private void drawLifeBar(Graphics2D g2d)
+	private void drawLifeBar( Graphics g )
 	{
-		g2d.setStroke(new BasicStroke(1));
-		g2d.setColor(new Color(255, 0, 0, 255)); //red base
-		g2d.fillRect((int)(getPosX()-getImgWidth()/2), (int)(getPosY()-getImgHeight()/4), 50, 5);
-		g2d.setColor(new Color(0, 255, 0, 255));
-		g2d.fillRect((int)(getPosX()-getImgWidth()/2), (int)(getPosY()-getImgHeight()/4), 50*getLife()/getMaxLife(), 5);
+		((Graphics2D)g).setStroke(new BasicStroke(1));
+		g.setColor(new Color(255, 0, 0, 255)); //red base
+		g.fillRect((int)(getPosX()-getImgWidth()/2), (int)(getPosY()-getImgHeight()/4), 50, 5);
+		g.setColor(new Color(0, 255, 0, 255));
+		g.fillRect((int)(getPosX()-getImgWidth()/2), (int)(getPosY()-getImgHeight()/4), 50*getCurrentLife()/getMaxLife(), 5);
 	}
 	
 	private void drawIntention(Graphics2D g2d, int intent)
@@ -467,6 +447,7 @@ public class SpaceShip extends SpaceObject
 	
 	public void drawStatusMessages(Graphics2D g2d)
 	{
+		/*
 		int i = 1;
 		lastMessage = msgArr.get(0);
 		
@@ -488,121 +469,96 @@ public class SpaceShip extends SpaceObject
 			lastMessage = thisMessage;
 			i++;
 		}
+		*/
 	}	
 	
-	public void drawShipStatusMessage(Graphics2D g2d, String str, Color c)
+	public void drawShipStatusMessage(Graphics g, String str, Color c)
 	{
-		g2d.setColor(c);
-		g2d.drawString(str, (int) getPosX(), (int) getPosY() + getImgHeight());
+		g.setColor(c);
+		g.drawString(str, (int) getPosX(), (int) getPosY() + getImgHeight());
 	}
 	
-	public void drawShipStatusMessage(Graphics2D g2d, String str, Color c, int x, int y)
+	public void drawShipStatusMessage(Graphics g, String str, Color c, int x, int y)
 	{
-		g2d.setColor(c);
-		g2d.drawString(str, x, y);
+		g.setColor(c);
+		g.drawString(str, x, y);
 	}
 	
-	public void decreaseLife(int val)
+	public void decreaseLife( int val )
 	{
 		this.life -= val;
-		this.newMessage("-" + val + " HP", new Color(255, 0, 0));
+		//this.newMessage("-" + val + " HP", new Color(255, 0, 0));
 		
-		if(life <= 0)
+		if(this.life <= 0)
 			destroy();
 	}
 	
 	public int getMaxLife()
 	{
-		return MAX_LIFE;
+		return maxLife;
 	}
 	
 	public void addLife(int val)
 	{
-		life += val;
-		this.newMessage("+" + val + " HP", new Color(0, 255, 0));
+		this.life += val;
+		//this.newMessage("+" + val + " HP", new Color(0, 255, 0));
 		
-		if(life > MAX_LIFE)
-		{
-			life = MAX_LIFE;
-		}
+		if(this.life > this.maxLife)
+			this.life = this.maxLife;
 	}
 	
 	public void increaseMaxLife(double val)
 	{
-		MAX_LIFE += val;
-		life = MAX_LIFE;
+		this.maxLife += val;
+		this.life = this.maxLife;
 		
-		newMessage("+" + val + " Life Increase!", new Color(0, 0, 255));
+		//newMessage("+" + val + " Life Increase!", new Color(0, 0, 255));
 	}
 	
+	/*
 	public int getNumOfMissilesLeft()
 	{
-		return MAX_MISSILES - missileCounter;
+		return max_missiles - missileCounter;
 	}
+	*/
 	
-	public int getNumberOfBombsLeft()
-	{
-		return MAX_BOMBS - bombCounter;
-	}
-	
-	/*public int getBombsDeployed()
-	{
-		return bombArr.size();
-	}*/
-	
-	public boolean hasBombsLeft()
-	{
-		if(bombCounter < MAX_BOMBS)
-			return true;
-		
-		return false;
-	}
-	
-	public boolean hasSeekMissilesLeft()
-	{
-		if(seekMissileCounter < MAX_SEEK_MISSILES)
-			return true;
-		
-		return false;
-	}
-	
-	/*public ArrayList<PlasmaBomb> getBombArr()
-	{
-		return bombArr;
-	}*/
-	
+	/*
 	public int getNumOfMissilesFired()
 	{
-		return MAX_MISSILES - missileCounter;
+		return max_missiles - missileCounter;
 	}
+	*/
 	
 	public void resetMissileCounter()
 	{
-		missileCounter = 0;
+		//missileCounter = 0;
 	}
 	
 	public void decreaseMissileCounter()
 	{
+		/*
 		missileCounter--;
 		
 		if(missileCounter < 0)
 			missileCounter = 0;
+		*/
 	}
 	
 	public void incrementNumOfMissiles()
 	{
-		MAX_MISSILES++;
-		newMessage("+1 Missile", new Color(0, 0, 255));
+		//max_missiles++;
+		//newMessage("+1 Missile", new Color(0, 0, 255));
 	}
 	
 	public void setMaxMissiles(int val)
 	{
-		MAX_MISSILES = val;
+		//max_missiles = val;
 	}
 	
 	public int getMaxMissiles()
 	{
-		return MAX_MISSILES;
+		return 0;
+		//return max_missiles;
 	}
 	
 	/*public ArrayList<Missile> getMissiles()
@@ -610,19 +566,21 @@ public class SpaceShip extends SpaceObject
 		return missileArr;
 	}*/
 	
+	/*
 	public ArrayList<Weapon> getWeaponArr()
 	{
 		return weaponArr;
 	}
+	*/
 	
-	public int getLife() 
+	public int getCurrentLife() 
 	{
-		return life;
+		return this.life;
 	}
 	
-	public void setLife(int life)
+	public void setCurrentLife(int newLife)
 	{
-		this.life = life;
+		this.life = newLife;
 	}
 	
 	/*public boolean isInLineOfSight(SpaceShip other)
