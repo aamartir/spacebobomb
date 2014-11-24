@@ -31,6 +31,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 
 	// FPS
 	private static final int timeSliceDuration = 1000;
+	public static final int framesPerSec = 60;
+	public static final int secondsPerFrame = ((int) 1000/framesPerSec);
+	
 	long currentTimeSlice;
 	long nextTimeSlice;
 	int framesInCurrentTimeSlice;
@@ -87,15 +90,23 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 
 		// Used for fps
 		nextTimeSlice = System.currentTimeMillis() + timeSliceDuration;
+		lastTime = System.nanoTime();
 		
 		// game loop
 		while( inGame )
 		{
-			dt = (System.nanoTime() - lastTime)/1000000000.0; // Time in milliseconds
-			lastTime = System.nanoTime();
+			// Get delta time
+			dt = (System.nanoTime() - lastTime)/1000000.0; // Time in milliseconds
 			
-			gameLogic( getLastFPS()*dt );
-			gameDraw();
+			// Limit game logic and drawing to framesPerSecond
+			if( dt > secondsPerFrame )
+			{
+				gameLogic( 5*dt );
+				gameDraw();
+				
+				// Record last time
+				lastTime = System.nanoTime();
+			}
 		}
 	}
 	
@@ -445,8 +456,6 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		public void keyPressed(KeyEvent e)
 		{
 			int key = e.getKeyCode();
-			
-			//System.out.println( "Key pressed: " + key );
 			
 			// Accelerate
 			if(key == KeyEvent.VK_W)
