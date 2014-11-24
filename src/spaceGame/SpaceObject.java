@@ -3,197 +3,188 @@ package spaceGame;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
-
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.ImageIcon;
+import Mathematics.Vector2D;
 import com.ship.effects.Explosion;
 import com.ship.effects.Target;
 
 public class SpaceObject 
 {
-	private Quadrant quad;
-	private int gridID;
-
-	private double x;
-	private double y;
-	private double vel;
-	private double angle; // Direction angle
+	private double pos_x;
+	private double pos_y;
+	private double v_x;
+	private double v_y;
+	private double a_x;
+	private double a_y;	
+	private double angle;
+	private double mass;
+	private double rotationDegPerSecSquared; // Rotational acceleration
+	private double rotationDegPerSec; // The rate of change of rotationAngle
 	
-	private double rotationAngle; // Rotation angle
-	private double rotationRateDeg;
-	private int width;
-	private int height;
 	private ImageIcon img;
-	
+	private AffineTransform transf;
+	private static AffineTransform savedTransform;
 	private boolean visible;
 	private boolean destroyed;
-	
-	private double MAX_TURNING_RATE;
-	public static double OBJ_MAX_VEL = 0.15;
-	private int OBJ_DIRECTION = 0; //Up or down
-	
-	private AffineTransform transf;
-	
-	// Dynamic Objects
-	private Explosion expl = new Explosion();
-	private SpaceShip thisSpaceShip;
-	private Target objectTarget = new Target();
-	
-	public static final Color TRANSPARENT_COLOR = new Color(255, 255, 255, 40);
-	public static final BasicStroke bStroke = new BasicStroke(1f);
-	public static final Font bFont = new Font("Arial", Font.PLAIN, 12);
-	
-	private boolean selected = false;
-	private boolean mouseHover = false;
+
+	public static final int NO_SPEED_LIMIT      = 0;
+	public static final int FRICTIONLESS_OBJECT = 0;
 	
 	// Moves objects based on their angle
-	public SpaceObject(String PATH, String imgFilename, int x, int y, double vel, double angle)
+	public SpaceObject( String imgFilename, int x, int y, double v_x, double v_y, double initialAngle, double mass )
 	{
-		setImg(PATH, imgFilename);
-		setVelocity(vel);
-		setAngle(angle);
+		img = getImgResource( imgFilename );
+		setVelocity( v_x, v_y );
+		setAngle( initialAngle );
+		setPosition( x, y );
+		setVisible( true );
+	}
+	
+	public SpaceObject( int x, int y, double v_x, double v_y, double initialAngle, double mass )
+	{
+		this( null, x, y, v_x, v_y, initialAngle, mass );
+	}
+	
+	// This function is called automatically for every space object
+	public void updateSpaceObjectMotion( double maxSpeed, double maxRotationRate, double thrustFriction, double angularFriction, double dt )
+	{
+		// Update speed( based on acceleration )
+		if( maxSpeed == NO_SPEED_LIMIT )
+		{
+			v_x += a_x * dt;
+			v_y += a_y * dt;
+		}
+		else
+		{
+			v_x = limit( v_x + a_x*dt, -maxSpeed, maxSpeed );
+			v_y = limit( v_y + a_y*dt, -maxSpeed, maxSpeed );
+		}
+
+		// Friction affects linear motion (and is directly proportional to the speed)
+		if( a_x == 0 )
+			v_x -= thrustFriction*v_x;
+		if( a_y == 0 )
+			v_y -= thrustFriction*v_y;
 		
-		this.x = x;
-		this.y = y;
-		this.visible = true;
+		// Update position with linear velocities
+		pos_x += v_x * dt;
+		pos_y += v_y * dt;
 		
-		//if(this instanceof SpaceShip)
-			Grid.assignObjectToQuadrant(x, y, this);
-	}
-	
-	public void setGridID(int val)
-	{
-		this.gridID = val;
-	}
-	
-	public int getGridID()
-	{
-		return gridID;
-	}
-	
-	public SpaceObject(int x, int y, double vel, double angle)
-	{
-		img = null;
+		// Update angle (based on angular acceleration)
+		if( maxRotationRate == NO_SPEED_LIMIT )
+			rotationDegPerSec += rotationDegPerSecSquared * dt;
+		else
+			rotationDegPerSec = limit(rotationDegPerSec + rotationDegPerSecSquared * dt, -maxRotationRate, maxRotationRate );
 		
-		this.x = x;
-		this.y = y;
-		this.vel = vel;
-		this.angle = angle;
-		this.visible = true;
-	}
-	
-	public void move()
-	{
-		x += vel*Math.cos(angle*Math.PI/180);
-		y += vel*Math.sin(angle*Math.PI/180);
+		// Angular rotation is also affected by friction (proportional to angular speed)
+		if( rotationDegPerSecSquared == 0 )
+			rotationDegPerSec -= angularFriction*rotationDegPerSec;
 		
-		rotationAngle += rotationRateDeg;
+		// update angle with angular rotation
+		angle += rotationDegPerSec * dt;
+	}
+	
+	public double limit( double val, double lowerLimit, double upperLimit )
+	{
+		if( val > upperLimit )
+			val = upperLimit;
+		else if( val < lowerLimit )
+			val = lowerLimit;
 		
-		// Update the Quadrant
-		Grid.assignObjectToQuadrant((int) x, (int) y, this);
+		return val;
 	}
 	
-	public Quadrant getQuadrant()
+	public void setAcceleration( double a_x, double a_y )
 	{
-		return quad;
+		this.a_x = a_x;
+		this.a_y = a_y;
 	}
 	
-	public void assignQuadrant(Quadrant q)
+	public double getAccel_x()
 	{
-		quad = q;
+		return this.a_x;
 	}
 	
-	public void accelerate(double acc)
+	public double getAccel_y()
 	{
-		vel += acc;
-		
-		if(vel > OBJ_MAX_VEL)
-			vel = OBJ_MAX_VEL;
-		else if(vel < - OBJ_MAX_VEL)
-			vel = -OBJ_MAX_VEL;
+		return this.a_y;
 	}
 	
-	public void setRotationRateDeg(double rateDeg)
+	public double getAccelMagnitude()
 	{
-		this.rotationRateDeg = rateDeg;
+		return Math.sqrt( a_x*a_y + a_y*a_y);
 	}
 	
-	public double getRotationRateDeg()
+	// Does not take into account angular Thrust
+	public void setRotationRateDegPerSec(double rateDegPerSec)
 	{
-		return rotationRateDeg;	
+		this.rotationDegPerSec = rateDegPerSec;
 	}
 	
-	public void setRotationAngle(double val)
+	public double getRotationRateDegPerSec()
 	{
-		this.rotationAngle = val;
+		return rotationDegPerSec;	
 	}
 	
-	public double getRotationAngle()
+	public void setRotationDegPerSecSquared( double rateDegPerSecSquared )
 	{
-		return rotationAngle;
+		rotationDegPerSecSquared = rateDegPerSecSquared;
 	}
 	
-	public void setVelocity(double vel)
+	public double getRotationDegPerSecSquared()
 	{
-		this.vel = vel;
-		OBJ_DIRECTION = (int) Math.signum(vel);
+		return rotationDegPerSecSquared;
 	}
 	
-	public double getVelocity()
+	public void setAngle(double val)
 	{
-		return vel;
+		this.angle = checkAngleBoundaries( val );
 	}
 	
-	public void setMaxVelocity(double val)
+	public double getAngle()
 	{
-		OBJ_MAX_VEL = val;
-		OBJ_DIRECTION = (int) Math.signum(OBJ_MAX_VEL);
+		return this.angle;
 	}
 	
-	public double getMaxVelocity()
+	public void setPosition( int x, int y )
 	{
-		return OBJ_MAX_VEL;
+		this.pos_x = x;
+		this.pos_y = y;
 	}
 	
-	public void setDirection(int dir)
+	public void setVelocity(double v_x, double v_y)
 	{
-		OBJ_DIRECTION = dir;
+		this.v_x = v_x;
+		this.v_y = v_y;
 	}
 	
-	public int getDirection()
+	public double getVelocityX()
 	{
-		return OBJ_DIRECTION;
+		return v_x;
 	}
 	
-	public void setMaxTurningRate(double val)
+	public double getVelocityY()
 	{
-		MAX_TURNING_RATE = val;
+		return v_y;
 	}
 	
-	public double getMaxTurningRate()
+	public void destroy( boolean val )
 	{
-		return MAX_TURNING_RATE;
+		this.destroyed = val;
+		this.visible = !val;
 	}
 	
-	public void setDestroyed(boolean destroyed)
-	{
-		this.destroyed = destroyed;
-		this.visible = !destroyed;
-		
-		// Stop the target and the thread controlling it to save memory
-		getObjectTarget().rest();
-		//objectTarget = null;
-	}
-	
-	public boolean isCollidingWith(SpaceObject other)
+	public boolean isCollidingWith( SpaceObject other )
 	{
 		if(getBounds().intersects(other.getBounds()))
 			return true;
@@ -208,42 +199,45 @@ public class SpaceObject
 	
 	public void setMouseHover()
 	{
+		/*
 		// Play sound if set on this object for the first time
 		if(!mouseHover)
 			SFX_Player.playSound(SFX_Player.OTHER_SOUND_PATH, SFX_Player.BEEP_29_SOUND);
 			
 		mouseHover = true;
 		getObjectTarget().activate();
+		*/
 	}
 		
 	public void unsetMouseHover()
 	{
+		/*
 		mouseHover = false;
 		getObjectTarget().rest();
+		*/
 	}
 	
+	/*
 	public boolean isMouseHovering()
 	{
 		return mouseHover;
 	}
-	
-	public void destroy()
-	{
-		setDestroyed(true);
-	}
+	*/
 	
 	public boolean isDestroyed()
 	{
 		return destroyed;
 	}
 	
-	public void rotate(double dr)
+	public void rotate( double dr )
 	{
+		/*
 		if(Math.abs(dr) > MAX_TURNING_RATE)
 			dr = Math.signum(dr)*MAX_TURNING_RATE;
 		
 		angle += dr;
 		setAngle(angle);
+		*/
 	}
 	
 	/*public int getHeadingQuadrant()
@@ -260,48 +254,71 @@ public class SpaceObject
 	
 	public int getImgWidth()
 	{
-		return width;
+		return img.getImage().getWidth(null);
 	}
 	
 	public int getImgHeight()
 	{
-		return height;
+		return img.getImage().getHeight(null);
+	}
+	
+	/*
+	public void setImg( ImageIcon img ) 
+	{
+		this.img = img;
+		img_width = img.getImage().getWidth(null);
+		img_height = img.getImage().getHeight(null);
+	}
+	
+	public void setImg( String imgFilename )
+	{
+		setImg( new ImageIcon(getClass().getResource("/resources/" + imgFilename)) );
+	}
+	*/
+	
+	public static ImageIcon getImgResource( String imgFilename )
+	{
+		return new ImageIcon(SpaceObject.class.getResource("/resources/" + imgFilename));
 	}
 	
 	public double getPosX() 
 	{
-		return x;
+		return this.pos_x;
 	}
 	
 	public void setPosX(int x) 
 	{
-		this.x = x;
+		this.pos_x = x;
 	}
 	
 	public double getPosY() 
 	{
-		return y;
+		return this.pos_y;
 	}
 	
+	public void setPosY(int y) 
+	{
+		this.pos_y = y;
+	}
+	
+	/*
 	public double getAngle()
 	{
 		return angle;
 	}
+	*/
 	
 	public double degToRad(double deg)
 	{
 		return deg*Math.PI/180;
 	}
 	
+	/*
 	public double getAngleRad() 
 	{
 		return getAngle()*Math.PI/180;
 	}
-	
-	public void setAngle(double angle)
-	{
-		this.angle = checkAngleBoundaries(angle);
-	}
+	*/
 	
 	// Returns angle in the range -180 < angle <= 180
 	public double checkAngleBoundaries(double angle)
@@ -317,17 +334,12 @@ public class SpaceObject
 		return angle;
 	}
 	
-	public void setPosY(double posY) 
-	{
-		this.y = y;
-	}
-	
 	public Rectangle getBounds()
 	{
-		return new Rectangle((int) x, (int) y, width, height);
+		return new Rectangle( (int) pos_x, (int) pos_y, getImgWidth(), getImgHeight() );
 	}
 	
-	public void setVisible(boolean visibility)
+	public void setVisible( boolean visibility )
 	{
 		this.visible = visibility;
 	}
@@ -341,19 +353,9 @@ public class SpaceObject
 	{
 		return img.getImage();
 	}
-	public void setImg(ImageIcon img) 
-	{
-		this.img = img;
-		this.width = img.getImage().getWidth(null);
-		this.height = img.getImage().getHeight(null);
-	}
 	
-	public void setImg(String PATH, String imgFilename)
-	{
-		setImg(new ImageIcon(getClass().getResource(PATH + "" + imgFilename)));
-	}
-	
-	public void drawObjectData(Graphics2D g2d)
+	/*
+	public void drawObjectData( Graphics g )
 	{
 		g2d.setColor(TRANSPARENT_COLOR);
 		g2d.fillRect((int) (getPosX() + 2*getImgWidth()), (int) getPosY(), 80, 50);
@@ -365,59 +367,54 @@ public class SpaceObject
 		
 		if(this instanceof SpaceShip)
 		{
-			thisSpaceShip = (SpaceShip) this;
-			g2d.drawString("Life: " + thisSpaceShip.getLife(), (int) (getPosX() + 2*getImgWidth() + 5), (int) getPosY() + 15);
-			g2d.drawString("Bombs: " + thisSpaceShip.getNumberOfBombsLeft(), (int) (getPosX() + 2*getImgWidth() + 5), (int) getPosY() + 30);
-			g2d.drawString("Fuel: " + Math.round(thisSpaceShip.getFuel()), (int) (getPosX() + 2*getImgWidth() + 5), (int) getPosY() + 45);
+			//thisSpaceShip = (SpaceShip) this;
+			//g2d.drawString("Life: " + thisSpaceShip.getLife(), (int) (getPosX() + 2*getImgWidth() + 5), (int) getPosY() + 15);
+			//g2d.drawString("Bombs: " + thisSpaceShip.getNumberOfBombsLeft(), (int) (getPosX() + 2*getImgWidth() + 5), (int) getPosY() + 30);
+			//g2d.drawString("Fuel: " + Math.round(thisSpaceShip.getFuel()), (int) (getPosX() + 2*getImgWidth() + 5), (int) getPosY() + 45);
 		}	
 	}
+	*/
+	
+	public void drawSpaceObject( Graphics g )
+	{
+		Graphics2D g2d = (Graphics2D) g;
 		
-	public void select()
-	{
-		selected = true;
-		objectTarget.activate();
-	}
-	
-	public void unselect()
-	{
-		selected = false;
-		objectTarget.rest();
-	}
-	
-	public boolean isSelected()
-	{
-		return selected;
-	}
-	
-	public void draw(Graphics2D g2d)
-	{
+		// Save original transform
+		//AffineTransform saveTransform = g2d.getTransform();
+		savedTransform = g2d.getTransform();
+		
+		// This will transform our sprite
 		transf = new AffineTransform();
-		transf.rotate(getAngleRad() + degToRad(rotationAngle), getPosX() + getImgWidth()/2, getPosY() + getImgHeight()/2);
-		transf.translate(getPosX(), getPosY());
+
+		g2d.rotate( Math.toRadians( this.angle ),
+					getPosX() + getImgWidth()/2, 
+					getPosY() + getImgHeight()/2 );
+
+		transf.translate( getPosX(), getPosY() );
+		g2d.drawImage( getImg(), transf, null );
 		
-		g2d.drawImage(getImg(), transf, null);
+		// Only for debugging purposes
+		//g2d.setColor( Color.WHITE );
+		//g2d.drawRect( (int)getPosX(), (int)getPosY(), getImgWidth(), getImgHeight() );
 		
-		// Draw target
-		if(selected)
-			objectTarget.setImage(Target.RED_TARGET);
-		else
-			objectTarget.setImage(Target.BLUE_TARGET);
-		
-		// Attempt to draw target
-		objectTarget.draw(g2d, (int) getPosX(), (int) getPosY(), getImgWidth(), getImgHeight());
+		// Restore original transform matrix
+		g2d.setTransform( savedTransform );
 	}
 	
 	public void explode()
 	{
-		expl.setVisible(true);
-		setDestroyed(true);
+		//expl.setVisible(true);
+		//setDestroyed(true);
 	}
 	
+	/*
 	public Explosion getExplObj()
 	{
 		return expl;
 	}
+	*/
 	
+	/*
 	public boolean isExploding()
 	{
 		if(expl != null)
@@ -425,7 +422,9 @@ public class SpaceObject
 		
 		return false;
 	}
+	*/
 	
+	/*
 	public void drawExplosion(Graphics2D g2d)
 	{
 		if(expl != null)
@@ -435,11 +434,7 @@ public class SpaceObject
 			expl.drawExplotion(g2d);
 		}
 	}
-	
-	public Target getObjectTarget()
-	{
-		return objectTarget;
-	}
+	*/
 	
 	public double distanceWithRespectTo(SpaceObject other)
 	{
