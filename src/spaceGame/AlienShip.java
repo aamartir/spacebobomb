@@ -1,148 +1,118 @@
 package spaceGame;
+
 import java.util.Random;
 
 public class AlienShip extends SpaceShip
 {
 	private static Random randGenerator;
-	private double targetAngle;
-	private double DELTA_ANGLE = 0.0025;
-	private double experience; // 5 difficulty levels. The higher the level, the more accuracy and rate of fire the ship has
-	private final int MAX_EXPERIENCE = 10;
-	private boolean follow;
-	private boolean attack;
-	private boolean escape;
-	private int rateOfFire; // in Milliseconds
-	private int xpValue;
 	
-	public AlienShip(int xp, int x, int y, double vel, double angle)
+	// Motion parameters
+	private double directionAngle;
+
+	// Attack Parameters
+	private int strategy;
+	private SpaceShip attackTarget;
+	private int rateOfFire; // in Milliseconds
+	
+	public static final int CRUISE_STRATEGY            = 0;
+	public static final int FOLLOW_STRATEGY            = 1;
+	public static final int FOLLOW_AND_ATTACK_STRATEGY = 2;
+	public static final int EVADE_STRATEGY             = 3;
+	public static final int EVADE_AND_ESCAPE_STRATEGY  = 4;
+	
+	public AlienShip( int x, int y, double v_x, double v_y, double initialAngle )
 	{
-		super(SpaceShip.PATH, SpaceShip.SPACESHIP_RED, x, y, vel, angle);
+		super( SpaceShip.SPACESHIP_03, x, y, v_x, v_y, initialAngle, SpaceShip.SPACESHIP_MASS );
 		
 		randGenerator = new Random();
-		
-		targetAngle = angle;
-		experience = (MAX_EXPERIENCE/2-1)*randGenerator.nextDouble() + 1;
-		xpValue = (int) Math.round(5*experience);
-		
-		follow = false;
-		attack = false;
-		escape = false;
-		
-		//System.out.println(experience);
-		super.setMaxMissiles(1);
+		directionAngle = initialAngle;
 	}
 	
-	public int maxExperience()
+	public double getDirectionAngle()
 	{
-		return MAX_EXPERIENCE;
-	}
-	
-	public int getXP()
-	{
-		return xpValue;
-	}
-	
-	public void setXP(int val)
-	{
-		xpValue = val;
-	}
-	
-	public void setDelta(double newDelta)
-	{
-		DELTA_ANGLE = newDelta;
-	}
-	
-	public double getDelta()
-	{
-		return DELTA_ANGLE;
-	}
-	
-	public double getTargetAngle()
-	{
-		return targetAngle;
+		return directionAngle;
 	}
 	
 	public boolean isAttacking()
 	{
-		return this.attack;
+		return (strategy == FOLLOW_AND_ATTACK_STRATEGY);
 	}
 	
-	public void setAttack(boolean attack)
+	public void attack( SpaceShip target )
 	{
-		this.attack = attack;
+		strategy = FOLLOW_AND_ATTACK_STRATEGY;
 	}
 	
-	public void setTargetAngle(double angle)
+	public void setDirectionAngle( double angle )
 	{
-		targetAngle = super.checkAngleBoundaries(angle);
+		directionAngle = super.checkAngleBoundaries(angle);
 	}
 	
 	// AI for firing missiles (based on experience)
-	public void thinkAndFire(SpaceShip other)
+	public void thinkAndFire( SpaceShip other )
 	{
-		double dist = distanceWithRespectTo(other);
-		// If ship is following user, then shoot (based on experience)
+		double dist = distanceWithRespectTo( other );
+		
+		// If ship is following player, shoot (based on experience)
 		if(isFollowing() && isAttacking() && !isEscaping())
 		{
 			// Only shoot if in sight
-			if(Math.abs(getClosestAngle(getAngle(), angleWithRespectTo(other))) < 50/experience && dist < 200)		
+			//if(Math.abs(getClosestAngle(getAngle(), angleWithRespectTo(other))) < 50/experience && dist < 200)		
 			{
-				super.fireMissile();
+			//	super.fireMissile();
 			}
 		}
 	}
 	
-	public boolean targetAngleReached()
+	public boolean directionAngleReached()
 	{
-		if(Math.abs(getAngle() - getTargetAngle()) < 10)
+		if( Math.abs(getAngle() - getDirectionAngle()) < 10 )
 			return true;
 		else
 			return false;
 	}
 	
-	public void cruise(SpaceShip aShip, Random randGenerator, int WIDTH, int HEIGHT)
+	public void cruise( SpaceShip aShip, Random randGenerator, int WIDTH, int HEIGHT )
 	{
 		double posX = getPosX(); // current position and direction
 		double posY = getPosY();
 		double randAngle;
 		
-		if(targetAngleReached())
+		if( directionAngleReached() )
 		{
 			randAngle = 180*randGenerator.nextDouble()-90;
-			setTargetAngle(getAngle() + randAngle);
+			//setTargetAngle(getAngle() + randAngle);
 		}
 
 		// Check that the Alien ships are within the boundaries of the board
 		if(posX - 2*getImgWidth() <= 0 || posX + 2*getImgWidth() >= WIDTH ||
 		   posY <= 0 || posY + 2*getImgHeight() >= HEIGHT)
 		{
-			setTargetAngle(angleWithRespectTo(aShip));
+			setDirectionAngle( angleWithRespectTo(aShip) );
 		}
 	}
 	
 	public void avoidCollisionWith(SpaceShip other)
 	{
-		niceBehavior();
-		setTargetAngle(angleWithRespectTo(other) - 180);
+		strategy = EVADE_STRATEGY;
+		setDirectionAngle(angleWithRespectTo(other) - 180);
 	}
 	
 	// Follows another ship. Based on experience
 	public void followOther(SpaceShip other)
 	{
 		double angle = super.angleWithRespectTo(other);
-		double var = 100*randGenerator.nextDouble()-50/(experience);
+		double var = 100*randGenerator.nextDouble()-50;
 		
-		if(targetAngleReached())
-			setTargetAngle(angle + var);
+		if( directionAngleReached() )
+			setDirectionAngle(angle + var);
 		
-		follow = true;
+		strategy = FOLLOW_STRATEGY;
 	}
 	
 	public void followAndDestroy(SpaceShip other)
 	{
-		this.attack = true;
-		this.escape = false; //just in case
-		
+		strategy = FOLLOW_AND_ATTACK_STRATEGY;
 		followOther(other);
 		thinkAndFire(other);
 	}
@@ -150,56 +120,43 @@ public class AlienShip extends SpaceShip
 	public void escapeFrom(SpaceShip other)
 	{
 		double dist = distanceWithRespectTo(other);
-		
-		this.escape = true;
-		niceBehavior();
+
+		strategy = EVADE_AND_ESCAPE_STRATEGY;
 		
 		if(dist > 200 || other.isDestroyed()) // Stop escaping if the distance is long enough
-		{
-			this.escape = false;
-		}
+			strategy = CRUISE_STRATEGY;
 		else // Otherwise move as far away as possible from other
-		{
-			setTargetAngle(angleWithRespectTo(other) - 180);
-		}
-	}
-	
-	public void niceBehavior()
-	{
-		this.follow = false;
-		this.attack = false;
+			setDirectionAngle( angleWithRespectTo(other) - 180 );
 	}
 	
 	public boolean isFollowing()
 	{
-		return this.follow;
+		return (strategy == FOLLOW_STRATEGY);
 	}
 	
 	public void rotate()
 	{
-		double err = targetAngle - getAngle();
+		double err = directionAngle - getAngle();
 		
 		// Prevents sudden jerks due to angle-boundary transitions (i.e. from 180 to -179 deg or viseversa)
-		if(err > 180)
-			err -= 360;
-		else if(err < -180)
-			err += 360;
-
-		super.rotate(DELTA_ANGLE*err);
+		if( err > 0 )
+			super.rotate( -getMaxTurningRate() );
+		else if( err < 0 )
+			super.rotate( getMaxTurningRate() );
 	}
 
 	public boolean isEscaping() 
 	{
-		return this.escape;
+		return ( strategy == EVADE_AND_ESCAPE_STRATEGY );
 	}
 
-	public int getIntent() 
+	public void setStrategy( int newStrategy )
 	{
-		if(isAttacking())
-			return 0;
-		else if(isEscaping())
-			return 1;
-		else
-			return 2;
+		strategy = newStrategy;
+	}
+	
+	public int getStrategy() 
+	{
+		return strategy;
 	}
 }
