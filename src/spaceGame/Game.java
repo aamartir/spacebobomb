@@ -4,6 +4,8 @@ package spaceGame;
 import javax.swing.JFrame;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferStrategy;
 import java.awt.Color;
@@ -16,10 +18,6 @@ import java.awt.event.KeyEvent;
 //import java.awt.event.ActionListener;
 //import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import com.weapons.Weapon;
 
@@ -35,18 +33,19 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 
 	// FPS
 	private static final int timeSliceDuration = 1000;
-	public static final int framesPerSec = 60;
-	public static final int secondsPerFrame = ((int) 1000/framesPerSec);
+	public static final int framesPerSec = 90;
+	public static final int msPerFrame = ((int) 1000.0/framesPerSec);
 	
 	long currentTimeSlice;
 	long nextTimeSlice;
 	int framesInCurrentTimeSlice;
 	int framesInLastTimeSlice;
 	
-	private RenderThread renderThread;
 	private PlayerShip playerShip;
 	private boolean inGame;
-	private ScheduledExecutorService scheduler;
+	private Thread logicThread;
+	private Thread renderThread;
+	
 	public static void main( String[] args )
 	{
 		new Game();
@@ -54,8 +53,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	
 	public Game()
 	{
-		//this.setTitle( "Space bob omb" );
-		this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+		// this.setTitle( "Space bob omb" );
+		// this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		
 		// Remove borders from screen (it looks nicer this way).
 		this.setUndecorated( true );
@@ -71,60 +70,39 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		this.setFocusable( true );
 		this.setVisible( true );
 	
-		// Tell swing to stop rasterizing
-		setIgnoreRepaint( true );
-		
 		// Double buffering
 		this.createBufferStrategy( 2 );
 		
 		// Add keyListener
-		addKeyListener(new TAdapter());
+		addKeyListener( new TAdapter() );
 		//addMouseListener(this);
 
-		scheduler = Executors.newScheduledThreadPool(1);
-		
-		// Game loop (stays here for ever)
-		gameLoop();
+		// init game
+		initGame();
 	}
 
 	// Game loop
-	public void gameLoop()
+	public void initGame()
 	{
-		
-		inGame = true;
+		renderThread = new Thread( new GameRender() );
+		logicThread = new Thread( new GameLogic() );
 		
 		// Initialize spaceships
 		initSpaceShips();
 
+		// Start logic and rendering threads
+		logicThread.start();
+		renderThread.start();
+		//renderThread.setPriority( Thread.MAX_PRIORITY );
+		//logicThread.setPriority( Thread.MAX_PRIORITY );
+		
+		inGame = true;
+		
 		// Used for fps
 		nextTimeSlice = System.currentTimeMillis() + timeSliceDuration;
 		lastTime = System.nanoTime();
-		
-		// game loop
-		/*while( inGame )
-		{*/
-		renderThread = new RenderThread();
-		
-		final ScheduledFuture<?> handle = scheduler.scheduleAtFixedRate(renderThread, 0, secondsPerFrame, TimeUnit.MILLISECONDS);
-		
-			// Get delta time
-			
-		//}
 	}
 	
-	class RenderThread implements Runnable{
-		public void run()
-		{
-			dt = (System.nanoTime() - lastTime)/1000000.0; // Time in milliseconds
-			
-			gameLogic( dt );
-			gameDraw();
-				
-			// Record last time
-			lastTime = System.nanoTime();
-			
-		}
-	}
 	// Game logic 
 	public void gameLogic( double dt )
 	{
@@ -171,7 +149,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 		//Tell the System to do the Drawing now, otherwise it can take a few extra ms until 
         //Drawing is done which looks very jerky
-        //Toolkit.getDefaultToolkit().sync();	
+        Toolkit.getDefaultToolkit().sync();	
 	}
 
 	private void updateFPS()
@@ -464,6 +442,61 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		g.setColor( Color.YELLOW );
 		g.setFont(new Font("ARIAL", Font.PLAIN, 16));
 		g.drawString( fps + " fps", 20, 40 );
+	}
+	
+	class GameLogic extends Thread
+	{
+		public void run()
+		{
+			while( inGame )
+			{
+				dt = (System.nanoTime() - lastTime)/1000000.0; // Time in milliseconds
+				lastTime = System.nanoTime();
+				
+				// Game logic here
+				gameLogic( dt );
+
+				try
+				{
+					// Sleepy time
+					Thread.sleep( msPerFrame );
+				}
+				catch( InterruptedException ie ) 
+				{ 
+					System.out.println( ie.toString() );
+				}
+				finally
+				{
+					// Clean up
+				}
+			}
+		}
+	}
+	
+	class GameRender extends Thread
+	{
+		public void run()
+		{
+			while( inGame )
+			{
+				// Draw everything at 60 fps
+				gameDraw();
+					
+				try
+				{
+					// Sleepy time
+					Thread.sleep( msPerFrame );
+				}
+				catch( InterruptedException ie ) 
+				{
+					System.out.println( ie.toString() );
+				}
+				finally
+				{
+					// Clean up
+				}
+			}
+		}
 	}
 	
 	public class TAdapter extends KeyAdapter
