@@ -73,9 +73,9 @@ public class SpaceObject
 
 		// Friction affects linear motion (and is directly proportional to the speed)
 		if( a_x == 0 )
-			v_x -= thrustFriction*v_x;
+			v_x -= thrustFriction*v_x*dt;
 		if( a_y == 0 )
-			v_y -= thrustFriction*v_y;
+			v_y -= thrustFriction*v_y*dt;
 		
 		// Update position with linear velocities
 		pos_x += v_x * dt;
@@ -89,7 +89,7 @@ public class SpaceObject
 		
 		// Angular rotation is also affected by friction (proportional to angular speed)
 		if( rotationDegPerSecSquared == 0 )
-			rotationDegPerSec -= angularFriction*rotationDegPerSec;
+			rotationDegPerSec -= angularFriction*rotationDegPerSec*dt;
 		
 		// update angle with angular rotation
 		angle += rotationDegPerSec * dt;
