@@ -13,6 +13,7 @@ import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import java.awt.event.WindowEvent;
 //import java.awt.event.ActionListener;
 //import java.awt.event.MouseListener;
 //import java.awt.event.ActionListener;
@@ -46,9 +47,11 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	private Thread logicThread;
 	private Thread renderThread;
 	
+	static Game game;
+	
 	public static void main( String[] args )
 	{
-		new Game();
+		game = new Game();
 	}
 	
 	public Game()
