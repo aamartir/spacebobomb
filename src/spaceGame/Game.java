@@ -33,7 +33,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 
 	// FPS
 	private static final int timeSliceDuration = 1000;
-	public static final int framesPerSec = 90;
+	public static final int framesPerSec = 60;
 	public static final int msPerFrame = ((int) 1000.0/framesPerSec);
 	
 	long currentTimeSlice;
@@ -68,8 +68,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		this.setResizable( false );
 		this.setBackground( Color.black );
 		this.setFocusable( true );
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setVisible( true );
-	
+		
 		// Double buffering
 		this.createBufferStrategy( 2 );
 		
