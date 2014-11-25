@@ -54,7 +54,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	public Game()
 	{
 		// this.setTitle( "Space bob omb" );
-		// this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+		this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		
 		// Remove borders from screen (it looks nicer this way).
 		this.setUndecorated( true );
@@ -68,7 +68,6 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		this.setResizable( false );
 		this.setBackground( Color.black );
 		this.setFocusable( true );
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setVisible( true );
 		
 		// Double buffering
@@ -497,6 +496,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 					// Clean up
 				}
 			}
+			
+			// Close game window and exit program.
+			game.dispatchEvent( new WindowEvent(game, WindowEvent.WINDOW_CLOSING) );
+			System.exit( 0 );
 		}
 	}
 	
@@ -513,6 +516,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 				playerShip.setSpaceShipAngularThrust( -playerShip.getMaxAngularThrust());
 			else if(key == KeyEvent.VK_D)
 				playerShip.setSpaceShipAngularThrust( playerShip.getMaxAngularThrust() );
+			else if( key == KeyEvent.VK_ESCAPE )
+				inGame = false;
 		}
 		
 		public void keyReleased(KeyEvent e)
