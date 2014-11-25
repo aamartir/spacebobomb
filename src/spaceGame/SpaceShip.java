@@ -35,8 +35,8 @@ public class SpaceShip extends SpaceObject
 	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.0005;
 	public static final double SPACESHIP_MAX_SPEED               = 0.15; // Natural velocity (without boosters)
 	public static final double SPACESHIP_MAX_THRUST              = 0.0001;
-	public static final double SPACESHIP_THRUST_FRICTION         = 0.005; // Affects linear motion
-	public static final double SPACESHIP_ANGULAR_THRUST_FRICTION = 0.025;  // Affects angular motion
+	public static final double SPACESHIP_THRUST_FRICTION         = 0.0005; // Affects linear motion
+	public static final double SPACESHIP_ANGULAR_THRUST_FRICTION = 0.0025;  // Affects angular motion
 
 	public static final double SPACESHIP_MASS                    = 1.0;
 	public static final int    SPACESHIP_MAX_HP                  = 100;
