@@ -34,7 +34,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 
 	// FPS
 	private static final int timeSliceDuration = 1000;
-	public static final int framesPerSec = 60;
+	public static final int framesPerSec = 70;
 	public static final int msPerFrame = ((int) 1000.0/framesPerSec);
 	
 	long currentTimeSlice;
