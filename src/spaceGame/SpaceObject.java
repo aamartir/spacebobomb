@@ -48,6 +48,7 @@ public class SpaceObject
 		setAngle( initialAngle );
 		setPosition( x, y );
 		setVisible( true );
+		transf = new AffineTransform();
 	}
 	
 	public SpaceObject( int x, int y, double v_x, double v_y, double initialAngle, double mass )
@@ -384,12 +385,12 @@ public class SpaceObject
 		savedTransform = g2d.getTransform();
 		
 		// This will transform our sprite
-		transf = new AffineTransform();
+		//transf = new AffineTransform();
 
 		g2d.rotate( Math.toRadians( this.angle ),
 					getPosX() + getImgWidth()/2, 
 					getPosY() + getImgHeight()/2 );
-
+		transf.setToIdentity();
 		transf.translate( getPosX(), getPosY() );
 		g2d.drawImage( getImg(), transf, null );
 		
