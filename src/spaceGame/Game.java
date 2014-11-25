@@ -134,6 +134,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			// Draw fps
 			updateFPS();
 			drawFPS( g, getLastFPS() );
+			
+			// Draw msg "Escape to exit game"
+			drawScreenMessage( g, "Press Escape key to exit game", 14, 20, 60, Color.YELLOW );
 		}
 		finally
 		{
@@ -416,11 +419,11 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		*/
 	}
 	
-	public void drawScreenMessage( Graphics g, String str, int x, int y, Color c )
+	public void drawScreenMessage( Graphics g, String str, int textSize, int x, int y, Color c )
 	{
-		g.setColor(c);
-		g.setFont(new Font("ARIAL", Font.BOLD, 30));
-		g.drawString(str, x, y);
+		g.setColor( c );
+		g.setFont( new Font("ARIAL", Font.PLAIN, textSize) );
+		g.drawString( str, x, y );
 	}
 	
 	public void drawBar( Graphics g, int x, int y, int width, int height, double val, Color baseColor, Color topColor )
@@ -436,9 +439,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	
 	public void drawFPS( Graphics g, int fps )
 	{
-		g.setColor( Color.YELLOW );
-		g.setFont(new Font("ARIAL", Font.PLAIN, 16));
-		g.drawString( fps + " fps", 20, 40 );
+		drawScreenMessage( g, fps + " fps", 14, 20, 40, Color.YELLOW );
 	}
 	
 	class GameLogic extends Thread
