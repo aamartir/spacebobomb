@@ -91,13 +91,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		initSpaceShips();
 
 		// Start logic and rendering threads
+		inGame = true; // Has to be called before start of threads.
 		logicThread.start();
 		renderThread.start();
-		//renderThread.setPriority( Thread.MAX_PRIORITY );
-		//logicThread.setPriority( Thread.MAX_PRIORITY );
-		
-		inGame = true;
-		
+
 		// Used for fps
 		nextTimeSlice = System.currentTimeMillis() + timeSliceDuration;
 		lastTime = System.nanoTime();
