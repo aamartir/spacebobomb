@@ -29,17 +29,20 @@ import com.weapons.Weapon;
 
 public class SpaceShip extends SpaceObject
 {
-	// constants
+	// Motion dynamics
 	public static final double SPACESHIP_TURNING_RATE            = 0.2;
 	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.0005;
 	public static final double SPACESHIP_MAX_SPEED               = 0.15; // Natural velocity (without boosters)
 	public static final double SPACESHIP_MAX_THRUST              = 0.0001;
 	public static final double SPACESHIP_THRUST_FRICTION         = 0.0005; // Affects linear motion
 	public static final double SPACESHIP_ANGULAR_THRUST_FRICTION = 0.0025;  // Affects angular motion
-
 	public static final double SPACESHIP_MASS                    = 1.0;
-	public static final int    SPACESHIP_MAX_HP                  = 100;
-	public static final int    SPACESHIP_MAX_FUEL                = 100;
+	public static final double SPACESHIP_MAX_HP                  = 100;
+	public static final double SPACESHIP_MAX_FUEL                = 100;
+	
+	// Drawing constants
+	private static final double LIFE_BAR_WIDTH = 50.0;
+	private static final double LIFE_BAR_HEIGHT = 5.0;
 	
 	// Possible spaceship bodies
 	public static final String SPACESHIP_01  = "shipBlue.png";
@@ -58,11 +61,11 @@ public class SpaceShip extends SpaceObject
 	// SpaceShip's current parameters
 	private double thrust;
 	private double angularThrust;
-	private int    life;
+	private double life;
 	private double fuel;
 	
 	// SpaceShip's absolute parameters
-	private int    maxLife;
+	private double maxLife;
 	private double maxSpeed;
 	private double maxThrust;
 	private double maxAngularThrust; // angular acceleration
@@ -425,8 +428,8 @@ public class SpaceShip extends SpaceObject
 		Shape base, lifeBar;
 		Graphics2D g2d = (Graphics2D) g;
 		
-		base    = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, 50.0, 5.0 );
-		lifeBar = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, 50.0, 5.0 );
+		base    = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, LIFE_BAR_WIDTH, LIFE_BAR_HEIGHT );
+		lifeBar = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, LIFE_BAR_WIDTH * getCurrentLife()/getMaxLife(), LIFE_BAR_HEIGHT );
 		
 		g2d.setColor( Color.RED );
 		g2d.fill( base );
@@ -502,25 +505,25 @@ public class SpaceShip extends SpaceObject
 		this.life -= val;
 		//this.newMessage("-" + val + " HP", new Color(255, 0, 0));
 		
-		if(this.life <= 0)
+		if( this.life <= 0 )
 			destroy();
 	}
 	
-	public int getMaxLife()
+	public double getMaxLife()
 	{
 		return maxLife;
 	}
 	
-	public void addLife(int val)
+	public void addLife( double val )
 	{
 		this.life += val;
 		//this.newMessage("+" + val + " HP", new Color(0, 255, 0));
 		
-		if(this.life > this.maxLife)
+		if( this.life > this.maxLife )
 			this.life = this.maxLife;
 	}
 	
-	public void increaseMaxLife(double val)
+	public void increaseMaxLife( double val )
 	{
 		this.maxLife += val;
 		this.life = this.maxLife;
@@ -586,7 +589,7 @@ public class SpaceShip extends SpaceObject
 	}
 	*/
 	
-	public int getCurrentLife() 
+	public double getCurrentLife() 
 	{
 		return this.life;
 	}

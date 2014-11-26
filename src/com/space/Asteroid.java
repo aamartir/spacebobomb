@@ -7,7 +7,7 @@ import spaceGame.SpaceObject;
 
 public class Asteroid extends SpaceObject
 {
-	public static final double ASTEROID_MAX_SPEED 		 = 0.4;
+	public static final double ASTEROID_MAX_SPEED 		 = 0.05;
 	public static final double ASTEROID_MAX_TURNING_RATE = 0.4;
 	public static final double ASTEROID_MASS             = 1.0;
 			
@@ -33,8 +33,30 @@ public class Asteroid extends SpaceObject
 		super.drawSpaceObject( g );
 	}
 	
-	public static void createAsteroid( ArrayList<Asteroid> asteroidArr, String asteroidType, double x, double y, double v_x, double v_y, double initialAngle, double rotationDegPerSec, double mass )
+	public static void createAsteroid( ArrayList<Asteroid> arr, 
+			                           String asteroidType, 
+			                           double x, double y, 
+			                           double v_x, double v_y, 
+			                           double initialAngle, double rotationDegPerSec, 
+			                           double mass )
 	{
-		asteroidArr.add( new Asteroid( asteroidType, x, y, v_x, v_y, initialAngle, rotationDegPerSec, mass) );
+		arr.add( new Asteroid( asteroidType, x, y, v_x, v_y, initialAngle, rotationDegPerSec, mass) );
+	}
+	
+	public static void createRandomAsteroid( ArrayList<Asteroid> arr, 
+											 String asteroidType, 
+											 double minX, double minY, double maxX, double maxY )
+	{
+		double posX = SpaceObject.randGenerator.nextDouble()*(maxX - minX) + minX;
+		double posY = SpaceObject.randGenerator.nextDouble()*(maxY - minY) + minY;
+		
+		double velX = SpaceObject.randGenerator.nextDouble()*(2*ASTEROID_MAX_SPEED) - ASTEROID_MAX_SPEED;
+		double velY = SpaceObject.randGenerator.nextDouble()*(2*ASTEROID_MAX_SPEED) - ASTEROID_MAX_SPEED;
+		
+		double initialAngle = SpaceObject.randGenerator.nextDouble() * 180;
+		double rotationDegPerSec = SpaceObject.randGenerator.nextDouble() * (2*ASTEROID_MAX_TURNING_RATE) - ASTEROID_MAX_TURNING_RATE;
+		
+		// Add random asteroid
+		arr.add( new Asteroid(asteroidType, posX, posY, velX, velY, initialAngle, rotationDegPerSec, ASTEROID_MASS) );
 	}
 }

@@ -75,6 +75,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
 		pack(); //this.setSize( w, h );
 		
+		// System.out.println( "Screen size: " + screenWidth + "x" + screenHeight );
+		
 		this.setResizable( false );
 		this.setBackground( Color.black );
 		this.setFocusable( true );
@@ -113,8 +115,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 		renderThread = new Thread( new GameRender() );
 		logicThread = new Thread( new GameLogic() );
-		logicThread.start();
 		renderThread.start();
+		logicThread.start();
 
 		// Used for fps
 		nextTimeSlice = System.currentTimeMillis() + timeSliceDuration;
@@ -179,11 +181,23 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			
 			// Draw enemy space ships
 			for( SpaceShip ship : enemies )
-				ship.drawSpaceShip( graphics );
+			{
+				if( ship.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
+	                                      camera.getViewportMaxX(), camera.getViewportMaxY()) )
+				{
+					ship.drawSpaceShip( graphics );
+				}
+			}
 			
 			// Draw asteroids
 			for( Asteroid asteroid : asteroids )
-				asteroid.drawAsteroid( graphics );
+			{
+				if( asteroid.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
+						                      camera.getViewportMaxX(), camera.getViewportMaxY()) )
+				{
+					asteroid.drawAsteroid( graphics );
+				}
+			}
 			
 			// Draw other stuff
 			// TODO
@@ -230,9 +244,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		// Initialize enemie arraylist.
 		enemies = new ArrayList<SpaceShip>();
 		
-		// Add some enemies (test)
-		createEnemyShip( enemies, screenWidth/3.0, screenHeight/3.0, 0, 0, 45 );
-		createEnemyShip( enemies, screenWidth*2.0/3.0, screenHeight*2.0/3.0, 0, 0, 10 );
+		// Add some enemies at random locations (test)
+		for( int i = 0; i < 5; i++ )
+			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
 	}
 	
 	public void initAsteroids()
@@ -242,17 +256,14 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		asteroids = new ArrayList<Asteroid>();
 		
 		// Create a couple of asteroids
-		Asteroid.createAsteroid( asteroids, Asteroid.ASTEROID_01, 500, 600, 0, 0, 0, Asteroid.ASTEROID_MAX_TURNING_RATE/5.0, Asteroid.ASTEROID_MASS );
-		Asteroid.createAsteroid( asteroids, Asteroid.ASTEROID_02, 700, 900, 0, 0, 0, Asteroid.ASTEROID_MAX_TURNING_RATE/2.0, Asteroid.ASTEROID_MASS );
-		Asteroid.createAsteroid( asteroids, Asteroid.ASTEROID_03, 900, 100, 0, 0, 0, -Asteroid.ASTEROID_MAX_TURNING_RATE/10.0, Asteroid.ASTEROID_MASS );
-		Asteroid.createAsteroid( asteroids, Asteroid.ASTEROID_04, 100, 800, 0, 0, 0, -Asteroid.ASTEROID_MAX_TURNING_RATE/20.0, Asteroid.ASTEROID_MASS );
+		for( int i = 0; i < 20; i++ )
+		{
+			Asteroid.createRandomAsteroid( asteroids, 
+					                       Asteroid.ASTEROID_01, 
+					                       0, 0, screenWidth, screenHeight );
+		}
 	 }
-	
-	private void createEnemyShip(ArrayList<SpaceShip> arr, double posX, double posY, double speedX, double speedY, double initialAngle )
-	{
-		arr.add( new EnemyShip(posX, posY, speedX, speedY, initialAngle) );
-	}
-	
+
 	public void moveSpaceShipWeapons(SpaceShip aShip)
 	{
 		/*

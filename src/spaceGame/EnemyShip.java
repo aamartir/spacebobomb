@@ -1,13 +1,12 @@
 package spaceGame;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class EnemyShip extends SpaceShip
 {
-	private static Random randGenerator;
-	
 	// Motion parameters
-	private double directionAngle;
+	private double directionAngle; // <- What is this for?
 
 	// Attack Parameters
 	private int strategy;
@@ -23,8 +22,6 @@ public class EnemyShip extends SpaceShip
 	public EnemyShip( double x, double y, double v_x, double v_y, double initialAngle )
 	{
 		super( SpaceShip.SPACESHIP_03, x, y, v_x, v_y, initialAngle, SpaceShip.SPACESHIP_MASS );
-		
-		randGenerator = new Random();
 		directionAngle = initialAngle;
 	}
 	
@@ -80,7 +77,7 @@ public class EnemyShip extends SpaceShip
 		
 		if( directionAngleReached() )
 		{
-			randAngle = 180*randGenerator.nextDouble()-90;
+			randAngle = 180*SpaceObject.randGenerator.nextDouble()-90;
 			//setTargetAngle(getAngle() + randAngle);
 		}
 
@@ -158,5 +155,27 @@ public class EnemyShip extends SpaceShip
 	public int getStrategy() 
 	{
 		return strategy;
+	}
+	
+	public static void createEnemyShip( ArrayList<SpaceShip> arr, 
+			                            double posX, double posY, 
+			                            double speedX, double speedY, 
+			                            double initialAngle )
+	{
+		arr.add( new EnemyShip(posX, posY, speedX, speedY, initialAngle) );
+	}
+	
+	// Initial position is not given. Spawn at random location in map 
+	// between {minX, minY} and {maxX, maxY}
+	public static void createEnemyShip( ArrayList<SpaceShip> arr,
+			                            double speedX, double speedY,
+			                            double initialAngle,
+			                            double minX, double minY, double maxX, double maxY )
+	{
+		// random point in space within given boundaries
+		double posX = SpaceObject.randGenerator.nextDouble()*(maxX - minX) + minX;
+		double posY = SpaceObject.randGenerator.nextDouble()*(maxY - minY) + minY;
+		
+		createEnemyShip( arr, posX, posY, speedX, speedY, initialAngle );
 	}
 }

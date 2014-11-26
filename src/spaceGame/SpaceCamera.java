@@ -72,10 +72,30 @@ public class SpaceCamera
 	{
 		viewportWidth = w;
 	}
-	
+
 	public void setViewportHeight( int h )
 	{
 		viewportHeight = h;
+	}
+	
+	public double getViewportMinX()
+	{
+		return posX - viewportWidth/2.0;
+	}
+	
+	public double getViewportMinY()
+	{
+		return posY - viewportHeight/2.0;
+	}
+	
+	public double getViewportMaxX()
+	{
+		return posX + viewportWidth/2.0;
+	}
+	
+	public double getViewportMaxY()
+	{
+		return posY + viewportHeight/2.0;
 	}
 	
 	public void followSpaceObject( SpaceObject obj )

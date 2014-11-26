@@ -10,6 +10,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
+import java.util.Random;
+
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -20,6 +22,9 @@ import com.ship.effects.Target;
 
 public class SpaceObject 
 {
+	// Used to generate random numbers for all space objects
+	public static Random randGenerator = new Random();
+	
 	private double pos_x;
 	private double pos_y;
 	private double v_x;
@@ -41,7 +46,11 @@ public class SpaceObject
 	public static final int FRICTIONLESS_OBJECT = 0;
 	
 	// Moves objects based on their angle
-	public SpaceObject( String imgFilename, double x, double y, double v_x, double v_y, double initialAngle, double rotationDegPerSec, double mass )
+	public SpaceObject( String imgFilename, // Object's image filename string
+			            double x, double y, // Initial position
+			            double v_x, double v_y, // Initial velocity
+			            double initialAngle, double rotationDegPerSec,  // Initial angle and angular speed 
+			            double mass ) 
 	{
 		img = getImgResource( imgFilename );
 		setVelocity( v_x, v_y );
@@ -51,7 +60,10 @@ public class SpaceObject
 		transf = new AffineTransform();
 	}
 	
-	public SpaceObject( int x, int y, double v_x, double v_y, double initialAngle, double rotationDegPerSec, double mass )
+	public SpaceObject( double x, double y, 
+			            double v_x, double v_y, 
+			            double initialAngle, double rotationDegPerSec, 
+			            double mass )
 	{
 		this( null, x, y, v_x, v_y, initialAngle, rotationDegPerSec, mass );
 	}
@@ -333,6 +345,17 @@ public class SpaceObject
 			angle = 180 + angle%180;
 		
 		return angle;
+	}
+	
+	public boolean isWithinViewport( double minX, double minY, double maxX, double maxY )
+	{
+		if( (pos_x + getImgWidth()) < minX || (pos_x > maxX) ||
+			(pos_y + getImgHeight()) < minY || (pos_y > maxY) )
+		{
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public Rectangle getBounds()
