@@ -1,63 +1,40 @@
 package com.space;
 
-import java.awt.Color;
-import java.util.Random;
+import java.awt.Graphics;
+import java.util.ArrayList;
 
-import javax.swing.ImageIcon;
-import com.ship.effects.Explosion;
 import spaceGame.SpaceObject;
 
 public class Asteroid extends SpaceObject
 {
-	private int dmg;
-	private int innerAsteroids;
-	private int lvl;
-	private static Random randomGenerator;
+	public static final double ASTEROID_MAX_SPEED 		 = 0.4;
+	public static final double ASTEROID_MAX_TURNING_RATE = 0.4;
+	public static final double ASTEROID_MASS             = 1.0;
+			
+	public static final String ASTEROID_01 = "asteroid01.png";
+	public static final String ASTEROID_02 = "asteroid02.png";
+	public static final String ASTEROID_03 = "asteroid03.png";
+	public static final String ASTEROID_04 = "asteroid04.png";
 	
-	public static final String PATH 					= "/resources/";
-	public static final double ASTEROID_MAX_VEL 		= 0.3;
-	public static final double ASTEROID_MAX_ROTATION 	= 0.5;
-	
-	public Asteroid(String imgFilename, int x, int y, double vel, double angle, double rateDeg, int dmg, int lvl)
+	public Asteroid( String asteroidType, double x, double y, double v_x, double v_y, double initialAngle, double rotationDegPerSec, double mass )
 	{
-		super(PATH, imgFilename, x, y, vel, angle);
-		
-		super.setRotationRateDeg(rateDeg);
-		super.getExplObj().setColor(Color.gray);
-		
-		randomGenerator = new Random();
-
-		this.dmg = dmg;
-		this.lvl = lvl;
-		
-		if(lvl > 1)
-			this.innerAsteroids = randomGenerator.nextInt(3) + 2;
-		else
-			this.innerAsteroids = 0;
+		// Super constructor
+		super( asteroidType, x, y, v_x, v_y, initialAngle, rotationDegPerSec, ASTEROID_MASS );
+		super.setRotationRateDegPerSec( rotationDegPerSec );
 	}
 	
-	public int getAsteroidDmg()
+	public void updateAsteroidMotion( double dt )
 	{
-		return dmg;
+		super.updateSpaceObjectMotion( ASTEROID_MAX_SPEED, ASTEROID_MAX_TURNING_RATE, 0, 0, dt );
 	}
 	
-	public int getAsteroidLvl()
+	public void drawAsteroid( Graphics g )
 	{
-		return this.lvl;
+		super.drawSpaceObject( g );
 	}
 	
-	public void setAsteroidLvl(int val)
+	public static void createAsteroid( ArrayList<Asteroid> asteroidArr, String asteroidType, double x, double y, double v_x, double v_y, double initialAngle, double rotationDegPerSec, double mass )
 	{
-		this.lvl = val;
-	}
-	
-	public int getInnerAsteroids()
-	{
-		return innerAsteroids;
-	}
-	
-	public void setInnerAsteroids(int val)
-	{
-		this.innerAsteroids = val;
+		asteroidArr.add( new Asteroid( asteroidType, x, y, v_x, v_y, initialAngle, rotationDegPerSec, mass) );
 	}
 }

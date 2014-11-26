@@ -74,7 +74,7 @@ public class SpaceShip extends SpaceObject
 
 	public SpaceShip( String spaceshipType, double x, double y, double v_x, double v_y, double initialAngle, double mass )
 	{
-		super( spaceshipType, x, y, v_x, v_y, initialAngle, mass );
+		super( spaceshipType, x, y, v_x, v_y, initialAngle, 0, mass );
 
 		// Set exhaust image
 		//exhaustImg = SpaceObject.getImgResource( SHIP_EXHAUST_01 );

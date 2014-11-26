@@ -12,7 +12,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
 import java.awt.event.WindowEvent;
 //import java.awt.event.ActionListener;
 //import java.awt.event.MouseListener;
@@ -20,6 +19,7 @@ import java.awt.event.WindowEvent;
 //import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
+import com.space.Asteroid;
 import com.weapons.Weapon;
 
 public class Game extends JFrame //implements ActionListener, MouseListener
@@ -42,11 +42,12 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	private int framesInCurrentTimeSlice;
 	private int framesInLastTimeSlice;
 	
-	// Game objects
+	// Space objects
 	private PlayerShip playerShip;
-	private ArrayList<SpaceShip> enemies;
 	private SpaceCamera camera;
-	
+	private ArrayList<SpaceShip> enemies;
+	private ArrayList<Asteroid> asteroids;
+
 	private boolean inGame;
 	private Thread logicThread;
 	private Thread renderThread;
@@ -100,9 +101,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	// Game loop
 	public void initGame()
 	{
-		// Initialize spaceships
+		// Initialize spaceships and everything else
 		initSpaceShips();
-
+		initAsteroids();
+		
 		// Initialize camera
 		camera = new SpaceCamera( playerShip.getPosX(), playerShip.getPosY(), screenWidth, screenHeight, playerShip );
 		
@@ -129,6 +131,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		for( SpaceShip ship : enemies )
 			ship.updateSpaceShipMotion( dt );
 		
+		for( Asteroid asteroid : asteroids )
+			asteroid.updateAsteroidMotion( dt );
+		
 		// 2. Check collisions
 		// ...
 		
@@ -153,6 +158,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			// Clear screen (draw and fill black rectangle)
 			graphics.clearRect( 0, 0, screenWidth, screenHeight );
 			
+			// Set clipping region (only what's inside this area will be drawn)
+			graphics.setClip( 0, 0, screenWidth, screenHeight );
+			
 			// Draw fps. All static text and graphics are drawn before the translate function.
 			updateFPS();
 			drawFPS( graphics, getLastFPS() );
@@ -172,6 +180,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			// Draw enemy space ships
 			for( SpaceShip ship : enemies )
 				ship.drawSpaceShip( graphics );
+			
+			// Draw asteroids
+			for( Asteroid asteroid : asteroids )
+				asteroid.drawAsteroid( graphics );
 			
 			// Draw other stuff
 			// TODO
@@ -219,8 +231,22 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		enemies = new ArrayList<SpaceShip>();
 		
 		// Add some enemies (test)
-		createEnemyShip( enemies, screenWidth/3.0, screenHeight/2.0, 0, 0, 0 );
+		createEnemyShip( enemies, screenWidth/3.0, screenHeight/3.0, 0, 0, 45 );
+		createEnemyShip( enemies, screenWidth*2.0/3.0, screenHeight*2.0/3.0, 0, 0, 10 );
 	}
+	
+	public void initAsteroids()
+	{
+		System.out.println( "Generating asteroids..." );
+		
+		asteroids = new ArrayList<Asteroid>();
+		
+		// Create a couple of asteroids
+		Asteroid.createAsteroid( asteroids, Asteroid.ASTEROID_01, 500, 600, 0, 0, 0, Asteroid.ASTEROID_MAX_TURNING_RATE/5.0, Asteroid.ASTEROID_MASS );
+		Asteroid.createAsteroid( asteroids, Asteroid.ASTEROID_02, 700, 900, 0, 0, 0, Asteroid.ASTEROID_MAX_TURNING_RATE/2.0, Asteroid.ASTEROID_MASS );
+		Asteroid.createAsteroid( asteroids, Asteroid.ASTEROID_03, 900, 100, 0, 0, 0, -Asteroid.ASTEROID_MAX_TURNING_RATE/10.0, Asteroid.ASTEROID_MASS );
+		Asteroid.createAsteroid( asteroids, Asteroid.ASTEROID_04, 100, 800, 0, 0, 0, -Asteroid.ASTEROID_MAX_TURNING_RATE/20.0, Asteroid.ASTEROID_MASS );
+	 }
 	
 	private void createEnemyShip(ArrayList<SpaceShip> arr, double posX, double posY, double speedX, double speedY, double initialAngle )
 	{
