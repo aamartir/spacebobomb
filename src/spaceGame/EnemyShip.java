@@ -2,7 +2,7 @@ package spaceGame;
 
 import java.util.Random;
 
-public class AlienShip extends SpaceShip
+public class EnemyShip extends SpaceShip
 {
 	private static Random randGenerator;
 	
@@ -20,7 +20,7 @@ public class AlienShip extends SpaceShip
 	public static final int EVADE_STRATEGY             = 3;
 	public static final int EVADE_AND_ESCAPE_STRATEGY  = 4;
 	
-	public AlienShip( int x, int y, double v_x, double v_y, double initialAngle )
+	public EnemyShip( double x, double y, double v_x, double v_y, double initialAngle )
 	{
 		super( SpaceShip.SPACESHIP_03, x, y, v_x, v_y, initialAngle, SpaceShip.SPACESHIP_MASS );
 		

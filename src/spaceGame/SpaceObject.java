@@ -41,7 +41,7 @@ public class SpaceObject
 	public static final int FRICTIONLESS_OBJECT = 0;
 	
 	// Moves objects based on their angle
-	public SpaceObject( String imgFilename, int x, int y, double v_x, double v_y, double initialAngle, double mass )
+	public SpaceObject( String imgFilename, double x, double y, double v_x, double v_y, double initialAngle, double mass )
 	{
 		img = getImgResource( imgFilename );
 		setVelocity( v_x, v_y );
@@ -157,7 +157,7 @@ public class SpaceObject
 		return this.angle;
 	}
 	
-	public void setPosition( int x, int y )
+	public void setPosition( double x, double y )
 	{
 		this.pos_x = x;
 		this.pos_y = y;

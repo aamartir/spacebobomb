@@ -5,7 +5,7 @@ import javax.swing.ImageIcon;
 
 import com.ship.effects.SpaceShipTrail;
 
-import spaceGame.AlienShip;
+import spaceGame.EnemyShip;
 import spaceGame.SpaceObject;
 
 public class SeekMissile extends Weapon implements Runnable
@@ -38,7 +38,7 @@ public class SeekMissile extends Weapon implements Runnable
 	{
 		// Set angle
 		if(target != null)
-			super.rotate(AlienShip.getClosestAngle(this.getAngle(), this.angleWithRespectTo(target)));
+			super.rotate(EnemyShip.getClosestAngle(this.getAngle(), this.angleWithRespectTo(target)));
 		
 		super.move();
 	}

@@ -8,7 +8,10 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Rectangle2D.Double;
 import java.util.ArrayList;
+
 import javax.swing.ImageIcon;
 
 import panel.FrontPanel;
@@ -26,11 +29,7 @@ import com.weapons.Weapon;
 
 public class SpaceShip extends SpaceObject
 {
-	private AffineTransform transf;
-	private static AffineTransform savedTransform;
-	
-	// Some initial constants
-
+	// constants
 	public static final double SPACESHIP_TURNING_RATE            = 0.2;
 	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.0005;
 	public static final double SPACESHIP_MAX_SPEED               = 0.15; // Natural velocity (without boosters)
@@ -46,6 +45,9 @@ public class SpaceShip extends SpaceObject
 	public static final String SPACESHIP_01  = "shipBlue.png";
 	public static final String SPACESHIP_02  = "shipStyle3_small.png";
 	public static final String SPACESHIP_03  = "shipRed.png";
+		
+	private AffineTransform transf;
+	private static AffineTransform savedTransform;
 	
 	// Possible spaceship booster images
 	//public static final String SHIP_EXHAUST_01 = "exhaust_01.png";
@@ -70,7 +72,7 @@ public class SpaceShip extends SpaceObject
 	// Status messages to display on top of spaceship 
 	private ArrayList<ShipStatusMessage> msgArr;
 
-	public SpaceShip( String spaceshipType, int x, int y, double v_x, double v_y, double initialAngle, double mass )
+	public SpaceShip( String spaceshipType, double x, double y, double v_x, double v_y, double initialAngle, double mass )
 	{
 		super( spaceshipType, x, y, v_x, v_y, initialAngle, mass );
 
@@ -366,8 +368,10 @@ public class SpaceShip extends SpaceObject
 		boolean le = false;
 		boolean re = false;
 		
-		// Draw Life and Missiles Left on the upper left corner
+		// Draw Object
 		super.drawSpaceObject( g );
+		
+		// Draw its life bar atop it
 		drawLifeBar( g );
 
 		if( super.getRotationDegPerSecSquared() > 0 )
@@ -415,13 +419,20 @@ public class SpaceShip extends SpaceObject
 		*/
 	}
 
+	// Needs optimizing
 	private void drawLifeBar( Graphics g )
 	{
-		((Graphics2D)g).setStroke(new BasicStroke(1));
-		g.setColor(new Color(255, 0, 0, 255)); //red base
-		g.fillRect((int)(getPosX()-getImgWidth()/2), (int)(getPosY()-getImgHeight()/4), 50, 5);
-		g.setColor(new Color(0, 255, 0, 255));
-		g.fillRect((int)(getPosX()-getImgWidth()/2), (int)(getPosY()-getImgHeight()/4), 50*getCurrentLife()/getMaxLife(), 5);
+		Shape base, lifeBar;
+		Graphics2D g2d = (Graphics2D) g;
+		
+		base    = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, 50.0, 5.0 );
+		lifeBar = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, 50.0, 5.0 );
+		
+		g2d.setColor( Color.RED );
+		g2d.fill( base );
+		
+		g2d.setColor( Color.GREEN );
+		g2d.fill( lifeBar );
 	}
 	
 	private void drawIntention(Graphics2D g2d, int intent)

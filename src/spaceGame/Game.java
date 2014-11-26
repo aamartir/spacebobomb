@@ -37,17 +37,23 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	public static final int framesPerSec = 70;
 	public static final int msPerFrame = ((int) 1000.0/framesPerSec);
 	
-	long currentTimeSlice;
-	long nextTimeSlice;
-	int framesInCurrentTimeSlice;
-	int framesInLastTimeSlice;
+	private long currentTimeSlice;
+	private long nextTimeSlice;
+	private int framesInCurrentTimeSlice;
+	private int framesInLastTimeSlice;
 	
+	// Game objects
 	private PlayerShip playerShip;
+	private ArrayList<SpaceShip> enemies;
+	private SpaceCamera camera;
+	
 	private boolean inGame;
 	private Thread logicThread;
 	private Thread renderThread;
 	
-	static Game game;
+	public static Game game;
+	private BufferStrategy bufferStrategy;
+	private Graphics graphics;
 	
 	public static void main( String[] args )
 	{
@@ -72,10 +78,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		this.setBackground( Color.black );
 		this.setFocusable( true );
 		this.setVisible( true );
-		
-		// Double buffering
-		this.createBufferStrategy( 2 );
-		
+
 		// Add keyListener
 		addKeyListener( new TAdapter() );
 		//addMouseListener(this);
@@ -84,17 +87,30 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		initGame();
 	}
 
+	// Fixes an issue where bufferstrategy does not allocate the buffer.
+	// See: http://stackoverflow.com/questions/3435994/buffers-have-not-been-created-whilst-creating-buffers
+	public void addNotify()
+	{
+		super.addNotify();
+		
+		// Double buffering
+		this.createBufferStrategy( 2 );
+	}
+	
 	// Game loop
 	public void initGame()
 	{
-		renderThread = new Thread( new GameRender() );
-		logicThread = new Thread( new GameLogic() );
-		
 		// Initialize spaceships
 		initSpaceShips();
 
+		// Initialize camera
+		camera = new SpaceCamera( playerShip.getPosX(), playerShip.getPosY(), screenWidth, screenHeight, playerShip );
+		
 		// Start logic and rendering threads
 		inGame = true; // Has to be called before start of threads.
+		
+		renderThread = new Thread( new GameRender() );
+		logicThread = new Thread( new GameLogic() );
 		logicThread.start();
 		renderThread.start();
 
@@ -106,49 +122,68 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	// Game logic 
 	public void gameLogic( double dt )
 	{
-		// 1. Move all objects
+		// 1. Update player's motion
 		playerShip.updateSpaceShipMotion( dt );
+		
+		// 1a. Update enemies' motion
+		for( SpaceShip ship : enemies )
+			ship.updateSpaceShipMotion( dt );
 		
 		// 2. Check collisions
 		// ...
 		
 		// 3. Move accordingly on next iteration
 		// ...
+		
+		// Last. Move Camera to follow its target
+		camera.updatePosition();
 	}
 	
 	// Draw game stuff
 	public void gameDraw()
 	{
-		BufferStrategy bf = this.getBufferStrategy();
-		Graphics g = null;
+		bufferStrategy = this.getBufferStrategy();
+		graphics = null;
 
 		try
 		{
 			// Get the graphics object from the imagebuffer
-			g = bf.getDrawGraphics();
-
+			graphics = bufferStrategy.getDrawGraphics();
+			
 			// Clear screen (draw and fill black rectangle)
-			g.setColor( getBackground() );
-			g.fillRect( 0, 0, screenWidth, screenHeight );
+			graphics.clearRect( 0, 0, screenWidth, screenHeight );
 			
-			// Draw out little spaceship friend
-			playerShip.drawSpaceShip( g );
-			
-			// Draw fps
+			// Draw fps. All static text and graphics are drawn before the translate function.
 			updateFPS();
-			drawFPS( g, getLastFPS() );
+			drawFPS( graphics, getLastFPS() );
 			
 			// Draw msg "Escape to exit game"
-			drawScreenMessage( g, "Press Escape key to exit game", 14, 20, 60, Color.YELLOW );
+			drawScreenMessage( graphics, "Press Escape key to exit game", 14, 20, 60, Color.YELLOW );
+						
+			// Translate screen so that player is always in the center (This should be done before all objects are drawn, so that
+			// everything is translated properly).
+			//((Graphics2D)graphics).translate( -playerShip.getPosX() + getWidth()/2.0, -playerShip.getPosY() + getHeight()/2.0 );
+			((Graphics2D)graphics).translate( -camera.getPosX() + camera.getViewportWidth()/2.0, 
+					                          -camera.getPosY() + camera.getViewportHeight()/2.0 );
+			
+			// Draw our little spaceship friend
+			playerShip.drawSpaceShip( graphics );
+			
+			// Draw enemy space ships
+			for( SpaceShip ship : enemies )
+				ship.drawSpaceShip( graphics );
+			
+			// Draw other stuff
+			// TODO
 		}
 		finally
 		{
 			// Dispose of the graphics object when you are done with it
-			g.dispose();
+			graphics.dispose();
 		}
 		
 		// Show contents of backbuffer onto the screen (This will flip buffers automatically)
-		bf.show();
+		bufferStrategy.show();
 		
 		//Tell the System to do the Drawing now, otherwise it can take a few extra ms until 
         //Drawing is done which looks very jerky
@@ -179,40 +214,17 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 		// Initialize player spaceship in the middle of the screen
 		playerShip = new PlayerShip( screenWidth/2, screenHeight/2 );
-	}
-	
-	public void initAliens()
-	{
-		/*
-		alienCount = 2 + (int) Math.floor(gameLevel/2.0);
-		if(alienCount >= 5)
-			alienCount = 5;
-			
-		int x;
-		int y;
-		//double vel;
-		int tmp;
-		int angle;
 		
-		for(int i = 0; i < alienCount; i++)
-		{
-			tmp = randomGenerator.nextInt(2); // Random number between 0 and 1
-			x = 2*tmp*WIDTH - WIDTH/2; // Initialize outside of the board boundaries 
-			y = randomGenerator.nextInt(HEIGHT);
-			//x = randomGenerator.nextInt(WIDTH/3) + WIDTH/3;
-			//y = randomGenerator.nextInt(HEIGHT/3) + HEIGHT/3;
-
-			angle = randomGenerator.nextInt(359)-179; // Random direction
-			createAlienShip(spaceShipArr, x, y, SpaceShip.SHIP_MAX_VEL, 0, angle); // Create alien
-		}
-		*/
+		// Initialize enemie arraylist.
+		enemies = new ArrayList<SpaceShip>();
+		
+		// Add some enemies (test)
+		createEnemyShip( enemies, screenWidth/3.0, screenHeight/2.0, 0, 0, 0 );
 	}
 	
-	private void createAlienShip(ArrayList<SpaceShip> arr, int x, int y, double v_x, double v_y, double angle)
+	private void createEnemyShip(ArrayList<SpaceShip> arr, double posX, double posY, double speedX, double speedY, double initialAngle )
 	{
-		/*
-		arr.add(new AlienShip(gameLevel, x, y, v_x, v_y, angle));
-		*/
+		arr.add( new EnemyShip(posX, posY, speedX, speedY, initialAngle) );
 	}
 	
 	public void moveSpaceShipWeapons(SpaceShip aShip)
@@ -480,7 +492,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		{
 			while( inGame )
 			{
-				// Draw everything at 60 fps
+				// Draw everything at a specific fps
 				gameDraw();
 					
 				try

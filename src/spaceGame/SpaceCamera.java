@@ -7,12 +7,12 @@ public class SpaceCamera
 	private int viewportWidth;
 	private int viewportHeight;
 	
-	private int posX;
-	private int posY;
+	private double posX;
+	private double posY;
 	
 	private SpaceObject targetToFollow;
 	
-	public SpaceCamera( int x, int y, int dx, int dy )
+	public SpaceCamera( double x, double y, int dx, int dy )
 	{
 		posX = x;
 		posY = y;
@@ -23,18 +23,18 @@ public class SpaceCamera
 		targetToFollow = null;
 	}
 	
-	public SpaceCamera( int x, int y, int dx, int dy, SpaceObject target )
+	public SpaceCamera( double x, double y, int dx, int dy, SpaceObject target )
 	{
 		this( x, y, dx, dy );
 		targetToFollow = target;
 	}
 	
-	public int getPosX()
+	public double getPosX()
 	{
 		return posX;
 	}
 	
-	public int getPoxY()
+	public double getPosY()
 	{
 		return posY;
 	}
@@ -47,6 +47,15 @@ public class SpaceCamera
 	public void setPosY( int newY )
 	{
 		posY = newY;
+	}
+	
+	public void updatePosition()
+	{
+		if( targetToFollow != null )
+		{
+			posX = targetToFollow.getPosX();
+			posY = targetToFollow.getPosY();
+		}
 	}
 	
 	public int getViewportWidth()
