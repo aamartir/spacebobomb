@@ -5,6 +5,8 @@ import javax.swing.JFrame;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferStrategy;
@@ -71,8 +73,11 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 		// Set windows size to full screen
 		getContentPane().setPreferredSize( Toolkit.getDefaultToolkit().getScreenSize() );
-		screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
-		screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
+		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		screenWidth= gd.getDisplayMode().getWidth();
+		screenHeight = gd.getDisplayMode().getHeight();
+		/*screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
+		screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;*/
 		pack(); //this.setSize( w, h );
 		
 		// System.out.println( "Screen size: " + screenWidth + "x" + screenHeight );
