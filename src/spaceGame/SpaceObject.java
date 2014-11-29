@@ -17,7 +17,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.ImageIcon;
 import Mathematics.Vector2D;
-import com.ship.effects.Explosion;
+import com.ship.effects.Shockwave;
 import com.ship.effects.Target;
 
 public class SpaceObject 

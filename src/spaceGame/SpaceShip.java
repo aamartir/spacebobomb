@@ -18,7 +18,7 @@ import panel.FrontPanel;
 import panel.SkillSpace;
 import panel.skills.Skill;
 
-import com.ship.effects.Explosion;
+import com.ship.effects.Shockwave;
 import com.ship.effects.ShipStatusMessage;
 import com.ship.effects.SpaceShipTrail;
 import com.space.Asteroid;
