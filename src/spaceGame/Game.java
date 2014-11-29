@@ -56,6 +56,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	
 	public static Game game;
 	private BufferStrategy bufferStrategy;
+	private RenderingHints renderHints;
 	private Graphics graphics;
 	
 	public static void main( String[] args )
@@ -74,7 +75,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		// Set windows size to full screen
 		getContentPane().setPreferredSize( Toolkit.getDefaultToolkit().getScreenSize() );
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		screenWidth= gd.getDisplayMode().getWidth();
+		screenWidth = gd.getDisplayMode().getWidth();
 		screenHeight = gd.getDisplayMode().getHeight();
 		/*screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
 		screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;*/
@@ -136,10 +137,14 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 		// 1a. Update enemies' motion
 		for( SpaceShip ship : enemies )
+		{
 			ship.updateSpaceShipMotion( dt );
+		}
 		
 		for( Asteroid asteroid : asteroids )
+		{
 			asteroid.updateAsteroidMotion( dt );
+		}
 		
 		// 2. Check collisions
 		// ...
@@ -156,11 +161,15 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	{
 		bufferStrategy = this.getBufferStrategy();
 		graphics = null;
-
+		
+		renderHints = new RenderingHints( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
+		renderHints.put( RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY );
+		
 		try
 		{
 			// Get the graphics object from the imagebuffer
 			graphics = bufferStrategy.getDrawGraphics();
+			((Graphics2D) graphics).setRenderingHints( renderHints );
 			
 			// Clear screen (draw and fill black rectangle)
 			graphics.clearRect( 0, 0, screenWidth, screenHeight );
@@ -198,7 +207,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			for( Asteroid asteroid : asteroids )
 			{
 				if( asteroid.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
-						                      camera.getViewportMaxX(), camera.getViewportMaxY()) )
+						                      camera.getViewportMaxX(), camera.getViewportMaxY()) &&
+				    asteroid.isVisible() )
 				{
 					asteroid.drawAsteroid( graphics );
 				}
@@ -250,7 +260,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		enemies = new ArrayList<SpaceShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 5; i++ )
+		for( int i = 0; i < 10; i++ )
 			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
 	}
 	
