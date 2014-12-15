@@ -460,7 +460,7 @@ public class SpaceObject
 	}
 	*/
 	
-	public double distanceWithRespectTo(SpaceObject other)
+	public double distanceWithRespectTo( SpaceObject other )
 	{
 		double diffX = this.getPosX() - other.getPosX();
 		double diffY = this.getPosY() - other.getPosY();
@@ -468,7 +468,7 @@ public class SpaceObject
 		return Math.sqrt(diffX*diffX + diffY*diffY);
 	}
 	
-	public double angleWithRespectTo(SpaceObject other)
+	public double angleWithRespectTo( SpaceObject other )
 	{
 		double diffX = this.getPosX() - other.getPosX();
 		double diffY = this.getPosY() - other.getPosY();
@@ -476,17 +476,17 @@ public class SpaceObject
 		return checkAngleBoundaries((Math.atan2(diffY, diffX) + Math.PI)*180/Math.PI); // target angle
 	}
 	
-	public static double angleWithRespectToPoint(SpaceObject obj, int x, int y)
+	public static double angleWithRespectToPoint( SpaceObject obj, double x, double y )
 	{
 		return Math.atan2(y-obj.getPosY(), x-obj.getPosX());
 	}
 	
-	public static double angleWithRespectToPoint(int x1, int y1, int x2, int y2)
+	public static double angleWithRespectToPoint( double x1, double y1, double x2, double y2 )
 	{
 		return Math.atan2(y2-y1, x2-x1)*180/Math.PI;
 	}
 	
-	public static double getClosestAngle(double angle1, double angle2)
+	public static double getClosestAngle( double angle1, double angle2 )
 	{
 		double res = angle2 - angle1;
 		

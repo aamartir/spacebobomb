@@ -32,9 +32,9 @@ public class SpaceShip extends SpaceObject
 	// Motion dynamics
 	public static final double SPACESHIP_TURNING_RATE            = 0.2;
 	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.0005;
-	public static final double SPACESHIP_MAX_SPEED               = 0.15; // Natural velocity (without boosters)
+	public static final double SPACESHIP_MAX_SPEED               = 0.15;    // Natural velocity (without boosters)
 	public static final double SPACESHIP_MAX_THRUST              = 0.0001;
-	public static final double SPACESHIP_THRUST_FRICTION         = 0.0005; // Affects linear motion
+	public static final double SPACESHIP_THRUST_FRICTION         = 0.0005;  // Affects linear motion
 	public static final double SPACESHIP_ANGULAR_THRUST_FRICTION = 0.0025;  // Affects angular motion
 	public static final double SPACESHIP_MASS                    = 1.0;
 	public static final double SPACESHIP_MAX_HP                  = 100;
@@ -56,7 +56,7 @@ public class SpaceShip extends SpaceObject
 	//public static final String SHIP_EXHAUST_01 = "exhaust_01.png";
 	
 	// Images associated with spaceShip
-	private ImageIcon exhaustImg;
+	// private ImageIcon exhaustImg;
 	
 	// SpaceShip's current parameters
 	private double thrust;
@@ -109,7 +109,9 @@ public class SpaceShip extends SpaceObject
 	{
 		if( newThrust > maxThrust )
 			newThrust = maxThrust;
-
+		else if( newThrust < 0 )
+			newThrust = 0;
+		
 		thrust = newThrust;
 	}
 

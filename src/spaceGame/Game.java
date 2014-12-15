@@ -36,23 +36,23 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 
 	// FPS
 	private static final int timeSliceDuration = 1000;
-	public static final int framesPerSec = 70;
-	public static final int msPerFrame = ((int) 1000.0/framesPerSec);
+	public  static final int framesPerSec = 70;
+	public  static final int msPerFrame = ((int) 1000.0/framesPerSec);
 	
-	private long currentTimeSlice;
-	private long nextTimeSlice;
-	private int framesInCurrentTimeSlice;
-	private int framesInLastTimeSlice;
+	private static long currentTimeSlice;
+	private static long nextTimeSlice;
+	private static int framesInCurrentTimeSlice;
+	private static int framesInLastTimeSlice;
 	
 	// Space objects
-	private PlayerShip playerShip;
-	private SpaceCamera camera;
-	private ArrayList<SpaceShip> enemies;
-	private ArrayList<Asteroid> asteroids;
+	public  static PlayerShip playerShip;
+	private static SpaceCamera camera;
+	private static ArrayList<EnemyShip> enemies;
+	private static ArrayList<Asteroid> asteroids;
 
-	private boolean inGame;
-	private Thread logicThread;
-	private Thread renderThread;
+	private static boolean inGame;
+	private static Thread logicThread;
+	private static Thread renderThread;
 	
 	public static Game game;
 	private BufferStrategy bufferStrategy;
@@ -77,8 +77,6 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		screenWidth = gd.getDisplayMode().getWidth();
 		screenHeight = gd.getDisplayMode().getHeight();
-		/*screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
-		screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;*/
 		pack(); //this.setSize( w, h );
 		
 		// System.out.println( "Screen size: " + screenWidth + "x" + screenHeight );
@@ -102,7 +100,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	{
 		super.addNotify();
 		
-		// Double buffering
+		// Double buffering (allocate 2 buffers).
 		this.createBufferStrategy( 2 );
 	}
 	
@@ -136,9 +134,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		playerShip.updateSpaceShipMotion( dt );
 		
 		// 1a. Update enemies' motion
-		for( SpaceShip ship : enemies )
+		for( EnemyShip enemy : enemies )
 		{
-			ship.updateSpaceShipMotion( dt );
+			// Update AI and motion (motion is updated automatically within AI method).
+			enemy.AI( dt );
 		}
 		
 		for( Asteroid asteroid : asteroids )
@@ -162,6 +161,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		bufferStrategy = this.getBufferStrategy();
 		graphics = null;
 		
+		/* Enable Antialiasing (may reduce performance) */
 		renderHints = new RenderingHints( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
 		renderHints.put( RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY );
 		
@@ -169,6 +169,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		{
 			// Get the graphics object from the imagebuffer
 			graphics = bufferStrategy.getDrawGraphics();
+			
+			// Set antialiasing ON (with render hints)
 			((Graphics2D) graphics).setRenderingHints( renderHints );
 			
 			// Clear screen (draw and fill black rectangle)
@@ -257,11 +259,15 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		playerShip = new PlayerShip( screenWidth/2, screenHeight/2 );
 		
 		// Initialize enemie arraylist.
-		enemies = new ArrayList<SpaceShip>();
+		enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 10; i++ )
-			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
+		for( int i = 0; i < 1; i++ )
+		{
+			//EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
+			EnemyShip.createEnemyShip( enemies, 400, 400, 0, 0, 180 );
+			enemies.get( i ).followSpaceShip( playerShip );
+		}
 	}
 	
 	public void initAsteroids()
@@ -271,7 +277,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		asteroids = new ArrayList<Asteroid>();
 		
 		// Create a couple of asteroids
-		for( int i = 0; i < 20; i++ )
+		for( int i = 0; i < 10; i++ )
 		{
 			Asteroid.createRandomAsteroid( asteroids, 
 					                       Asteroid.ASTEROID_01, 
