@@ -253,7 +253,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 	public void initSpaceShips()
 	{
-		System.out.println( "Generating spaceships..." );
+		System.out.print( "Generating spaceships..." );
 		
 		// Initialize player spaceship in the middle of the screen
 		playerShip = new PlayerShip( screenWidth/2, screenHeight/2 );
@@ -262,17 +262,19 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 1; i++ )
+		for( int i = 0; i < 2; i++ )
 		{
-			//EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
-			EnemyShip.createEnemyShip( enemies, 800, 800, 0, 0, 100 );
+			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
+			//EnemyShip.createEnemyShip( enemies, 800, 800, 0, 0, 100 );
 			enemies.get( i ).followSpaceShip( playerShip );
 		}
+		
+		System.out.println( "done" );
 	}
 	
 	public void initAsteroids()
 	{
-		System.out.println( "Generating asteroids..." );
+		System.out.print( "Generating asteroids..." );
 		
 		asteroids = new ArrayList<Asteroid>();
 		
@@ -283,6 +285,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 					                       Asteroid.ASTEROID_01, 
 					                       0, 0, screenWidth, screenHeight );
 		}
+		
+		System.out.println( "done" );
 	 }
 
 	public void moveSpaceShipWeapons(SpaceShip aShip)

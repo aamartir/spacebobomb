@@ -31,7 +31,7 @@ public class SpaceShip extends SpaceObject
 {
 	// Motion dynamics
 	public static final double SPACESHIP_TURNING_RATE            = 0.2;
-	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.0005;
+	public static final double SPACESHIP_MAX_TURNING_THRUST      = 0.0003;
 	public static final double SPACESHIP_MAX_SPEED               = 0.15;    // Natural velocity (without boosters)
 	public static final double SPACESHIP_MAX_THRUST              = 0.0001;
 	public static final double SPACESHIP_THRUST_FRICTION         = 0.0005;  // Affects linear motion
@@ -41,8 +41,11 @@ public class SpaceShip extends SpaceObject
 	public static final double SPACESHIP_MAX_FUEL                = 100;
 	
 	// Drawing constants
-	private static final double LIFE_BAR_WIDTH = 50.0;
-	private static final double LIFE_BAR_HEIGHT = 5.0;
+	private static final double LIFE_BAR_WIDTH     		 = 50.0;
+	private static final double LIFE_BAR_HEIGHT    		 = 5.0;
+	private static final double EXHAUST_MAX_LENGTH 	     = 15.0;
+	private static final double EXHAUST_MAX_WIDTH  	     = 5.0;
+	private static final double DUAL_EXHAUST_SEPARATION  = 6.0;
 	
 	// Possible spaceship bodies
 	public static final String SPACESHIP_01  = "shipBlue.png";
@@ -319,50 +322,41 @@ public class SpaceShip extends SpaceObject
 	}*/
 	
 	// This needs optimizing
-	public void drawThrustExhaust( Graphics g, boolean drawLeftExhaust, boolean drawRightExhaust )
+	public void drawThrustExhaust( Graphics g, double thrust, double rotThrust )
 	{
 		Graphics2D g2d = ( Graphics2D )g;
-		
 		Shape exhaustShape;
-		int exhaustWidth = 10;
-		int exhaustHeight = 5;
-		
 		savedTransform = g2d.getTransform();
 
 		// Left exhaust
 		g.setColor( new Color(0, 191, 255) );
 		
-		// Apply rotation matrix
-		if( drawLeftExhaust || drawRightExhaust )
-		{
-			g2d.rotate(Math.toRadians( super.getAngle() ), 
-			           super.getPosX() + super.getImgWidth()/2,
-			           super.getPosY() + super.getImgHeight()/2);
-		}
+		// Scale rotation thrust to 0.5 of LINEAR THRUST
+		if( Math.abs(rotThrust) > 0 )
+			rotThrust = (SpaceShip.SPACESHIP_MAX_THRUST/2.0)*(rotThrust/SpaceShip.SPACESHIP_MAX_TURNING_THRUST);
 		
-		if( drawLeftExhaust )
-		{
-			exhaustShape = new Ellipse2D.Double( (int)(super.getPosX() - exhaustWidth), 
-				                                 (int)(super.getPosY() + super.getImgHeight()/2 - exhaustHeight/2 - 5), 
-				                                  exhaustWidth,   // Width 
-				                                  exhaustHeight ); // height
-			
-		    g2d.fill( exhaustShape );
-		    g2d.draw( exhaustShape ); //g2d.draw( transf.createTransformedShape(r1) );
-		}
-	    
+		// Apply rotation matrix
+		g2d.rotate(Math.toRadians( super.getAngle() ), 
+		           super.getPosX() + super.getImgWidth()/2,
+		           super.getPosY() + super.getImgHeight()/2);
+		
+		// Left exhaust
+		exhaustShape = new Ellipse2D.Double( super.getPosX() - EXHAUST_MAX_LENGTH*(thrust + rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST, 
+			                                 super.getPosY() + super.getImgHeight()/2.0 - EXHAUST_MAX_WIDTH/2.0 - DUAL_EXHAUST_SEPARATION, 
+			                                 EXHAUST_MAX_LENGTH*(thrust + rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST,   // Width 
+			                                 EXHAUST_MAX_WIDTH ); // height
+		
+	    g2d.fill( exhaustShape );
+	    g2d.draw( exhaustShape ); //g2d.draw( transf.createTransformedShape(r1) );
 	
 		// Right exhaust
-		if( drawRightExhaust )
-		{
-			exhaustShape = new Ellipse2D.Double( (int)(super.getPosX() - exhaustWidth), 
-	                                             (int)(super.getPosY() + super.getImgHeight()/2 - exhaustHeight/2 + 5), 
-	                                              exhaustWidth,   // Width 
-	                                              exhaustHeight ); // height
-			
-			g2d.fill( exhaustShape );
-			g2d.draw( exhaustShape ); //g2d.draw( transf.createTransformedShape(r1) ); 
-		}
+		exhaustShape = new Ellipse2D.Double( super.getPosX() - EXHAUST_MAX_LENGTH*(thrust - rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST, 
+                                             super.getPosY() + super.getImgHeight()/2.0 - EXHAUST_MAX_WIDTH/2.0 + DUAL_EXHAUST_SEPARATION, 
+                                             EXHAUST_MAX_LENGTH*(thrust - rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST,   // Width 
+                                             EXHAUST_MAX_WIDTH ); // height
+		
+		g2d.fill( exhaustShape );
+		g2d.draw( exhaustShape ); //g2d.draw( transf.createTransformedShape(r1) ); 
 		
 		// Restore transformation matrix
 		g2d.setTransform( savedTransform );
@@ -370,24 +364,17 @@ public class SpaceShip extends SpaceObject
 	
 	public void drawSpaceShip( Graphics g )
 	{
-		boolean le = false;
-		boolean re = false;
-		
 		// Draw Object
 		super.drawSpaceObject( g );
 		
 		// Draw its life bar atop it
 		drawLifeBar( g );
 
-		if( super.getRotationDegPerSecSquared() > 0 )
-			le = true;
-		else if( super.getRotationDegPerSecSquared() < 0 )
-			re = true;
+		// Draw exhausts
+		drawThrustExhaust( g, thrust, getRotationDegPerSecSquared() );
 		
-		if( thrust > 0 )
-			le = re = true;
-		
-		drawThrustExhaust( g, le, re );
+		System.out.println( "thrust: " + thrust +
+				            "\trotThrust: " + getRotationDegPerSecSquared() );
 		
 		//if(hasMessages() > 0)
 		//	drawStatusMessages(g2d);

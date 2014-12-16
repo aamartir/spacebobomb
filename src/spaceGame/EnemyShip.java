@@ -12,8 +12,8 @@ public class EnemyShip extends SpaceShip
 	public static final int    EVADE_STRATEGY             = 4;
 	public static final int    EVADE_AND_ESCAPE_STRATEGY  = 5;
 	
-	public static final double ATTACK_RADIUS              = 400.0;
-	public static final double PROXIMITY_RADIUS           = 600.0;	
+	public static final double ATTACK_RADIUS              = 600.0;
+	public static final double PROXIMITY_RADIUS           = 300.0;	
 	
 	// Attack Parameters
 	private int rateOfFire; // in seconds (How many missiles it can fire per second)
@@ -73,8 +73,10 @@ public class EnemyShip extends SpaceShip
 					else
 						setSpaceShipAngularThrust( 0 );
 					
+					/*
 					System.out.println( "angleErr: " + (angleWithRespectTo( targetSpaceShip ) - getAngle()) + 
 							            "suppAngle: " + getSupplementaryAngle( angleWithRespectTo( targetSpaceShip ) - getAngle()) );
+					*/
 					
 					/*
 					System.out.print( angleErr + "\t" );
