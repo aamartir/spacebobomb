@@ -73,6 +73,9 @@ public class EnemyShip extends SpaceShip
 					else
 						setSpaceShipAngularThrust( 0 );
 					
+					System.out.println( "angleErr: " + (angleWithRespectTo( targetSpaceShip ) - getAngle()) + 
+							            "suppAngle: " + getSupplementaryAngle( angleWithRespectTo( targetSpaceShip ) - getAngle()) );
+					
 					/*
 					System.out.print( angleErr + "\t" );
 					if( SPACESHIP_MAX_TURNING_THRUST*angleCorrection/45.0 >= SPACESHIP_MAX_TURNING_THRUST )

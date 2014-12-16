@@ -104,7 +104,7 @@ public class SpaceObject
 			rotationDegPerSec -= angularFriction*rotationDegPerSec*dt;
 		
 		// update angle with angular rotation
-		angle += rotationDegPerSec * dt;
+		angle = checkAngleBoundaries( angle + rotationDegPerSec * dt );
 	}
 	
 	public double limit( double val, double lowerLimit, double upperLimit )
@@ -488,10 +488,10 @@ public class SpaceObject
 	
 	public static double getSupplementaryAngle( double angle )
 	{
-		if( angle > 180 )
-			return 360 - angle;
-		else if( angle < -180 )
-			return 360 + angle;
+		if( angle >= 180 )
+			return angle - 360;
+		else if( angle <= -180  )
+			return angle + 360;
 		else
 			return angle;
 	}
