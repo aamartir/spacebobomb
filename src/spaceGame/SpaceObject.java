@@ -54,7 +54,7 @@ public class SpaceObject
 	{
 		img = getImgResource( imgFilename );
 		setVelocity( v_x, v_y );
-		setAngle( initialAngle );
+		setAngle( initialAngle ); // Positive angles are clockwise (inverted)
 		setPosition( x, y );
 		setVisible( true );
 		transf = new AffineTransform();
@@ -486,15 +486,13 @@ public class SpaceObject
 		return Math.atan2(y2-y1, x2-x1)*180/Math.PI;
 	}
 	
-	public static double getClosestAngle( double angle1, double angle2 )
+	public static double getSupplementaryAngle( double angle )
 	{
-		double res = angle2 - angle1;
-		
-		if(res > 180)
-			return 180 - res;
-		else if(res < -180)
-			return res + 180;
+		if( angle > 180 )
+			return 360 - angle;
+		else if( angle < -180 )
+			return 360 + angle;
 		else
-			return res;
+			return angle;
 	}
 }

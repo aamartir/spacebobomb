@@ -253,7 +253,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 	public void initSpaceShips()
 	{
-		System.out.println( "Initializing spaceships..." );
+		System.out.println( "Generating spaceships..." );
 		
 		// Initialize player spaceship in the middle of the screen
 		playerShip = new PlayerShip( screenWidth/2, screenHeight/2 );
@@ -265,7 +265,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		for( int i = 0; i < 1; i++ )
 		{
 			//EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
-			EnemyShip.createEnemyShip( enemies, 400, 400, 0, 0, 180 );
+			EnemyShip.createEnemyShip( enemies, 800, 800, 0, 0, 100 );
 			enemies.get( i ).followSpaceShip( playerShip );
 		}
 	}
