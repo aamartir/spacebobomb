@@ -133,13 +133,44 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		// 1. Update player's motion
 		playerShip.updateSpaceShipMotion( dt );
 		
+		// Move our player's weapons
+		for( int i = 0; i < playerShip.getWeaponsFired().size(); i++ )
+		{
+			if( playerShip.getWeaponsFired().get(i).isDestroyed() )
+			{
+				playerShip.getWeaponsFired().remove( i );
+				continue;
+			}
+			else
+			{
+				// Update the motion of each weapon
+				playerShip.getWeaponsFired().get(i).updateWeaponMotion( dt );
+			}
+		}
+		
 		// 1a. Update enemies' motion
 		for( EnemyShip enemy : enemies )
 		{
 			// Update AI and motion (motion is updated automatically within AI method).
 			enemy.AI( dt );
+			
+			// For every enemy ship, update motion of weapons fired. 
+			for( int i = 0; i < enemy.getWeaponsFired().size(); i++ )
+			{
+				if( enemy.getWeaponsFired().get(i).isDestroyed() )
+				{
+					enemy.getWeaponsFired().remove( i );
+					continue;
+				}
+				else
+				{
+					// Update the motion of each weapon
+					enemy.getWeaponsFired().get(i).updateWeaponMotion( dt );
+				}
+			}
 		}
 		
+		// Update asteroid dynamics
 		for( Asteroid asteroid : asteroids )
 		{
 			asteroid.updateAsteroidMotion( dt );
@@ -195,6 +226,18 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			// Draw our little spaceship friend
 			playerShip.drawSpaceShip( graphics );
 			
+			// Draw weapons fired of player ship
+			for( Weapon weapon : playerShip.getWeaponsFired() )
+			{
+				// Draw weapon if within viewport
+				if( weapon.isWithinViewport( camera.getViewportMinX(), camera.getViewportMinY(), 
+                        					 camera.getViewportMaxX(), camera.getViewportMaxY()) &&
+                    !weapon.isDestroyed() )
+				{
+					weapon.drawSpaceObject( graphics );
+				}
+			}
+			
 			// Draw enemy space ships
 			for( SpaceShip ship : enemies )
 			{
@@ -202,6 +245,17 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	                                      camera.getViewportMaxX(), camera.getViewportMaxY()) )
 				{
 					ship.drawSpaceShip( graphics );
+				}
+				
+				// Draw weapons fired if within viewport as well
+				for( Weapon weapon : ship.getWeaponsFired() )
+				{
+					if( weapon.isWithinViewport( camera.getViewportMinX(), camera.getViewportMinY(), 
+                            					 camera.getViewportMaxX(), camera.getViewportMaxY()) && 
+                        !weapon.isDestroyed() )
+        			{
+						weapon.drawSpaceObject( graphics );
+                    }
 				}
 			}
 			
@@ -593,6 +647,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 				playerShip.setSpaceShipAngularThrust( playerShip.getMaxAngularThrust() );
 			else if( key == KeyEvent.VK_ESCAPE )
 				inGame = false;
+			else if( key == KeyEvent.VK_SPACE )
+				playerShip.fireMissile();
 		}
 		
 		public void keyReleased(KeyEvent e)

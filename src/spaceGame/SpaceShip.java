@@ -18,6 +18,8 @@ import panel.FrontPanel;
 import panel.SkillSpace;
 import panel.skills.Skill;
 
+import Mathematics.Vector2D;
+
 import com.ship.effects.Shockwave;
 import com.ship.effects.ShipStatusMessage;
 import com.ship.effects.SpaceShipTrail;
@@ -43,9 +45,12 @@ public class SpaceShip extends SpaceObject
 	// Drawing constants
 	private static final double LIFE_BAR_WIDTH     		 = 50.0;
 	private static final double LIFE_BAR_HEIGHT    		 = 5.0;
-	private static final double EXHAUST_MAX_LENGTH 	     = 15.0;
+	private static final double EXHAUST_MAX_LENGTH 	     = 10.0;
 	private static final double EXHAUST_MAX_WIDTH  	     = 5.0;
 	private static final double DUAL_EXHAUST_SEPARATION  = 6.0;
+	
+	// Weapons constants
+	public  static final int    DT_TO_NEXT_MISSILE_MS    = 250;
 	
 	// Possible spaceship bodies
 	public static final String SPACESHIP_01  = "shipBlue.png";
@@ -75,6 +80,11 @@ public class SpaceShip extends SpaceObject
 	private double maxTurningRate; // angular speed
 	private double maxFuel;
 	
+	// Weapons instance variables
+	private int missileRateOfFireMillis;
+	private long timeOfLastMissileMillis;
+	private ArrayList<Weapon> weapons;
+	
 	// Status messages to display on top of spaceship 
 	private ArrayList<ShipStatusMessage> msgArr;
 
@@ -86,6 +96,10 @@ public class SpaceShip extends SpaceObject
 		//exhaustImg = SpaceObject.getImgResource( SHIP_EXHAUST_01 );
 		
 		// Spaceship parameters
+		weapons                 = new ArrayList<Weapon>();
+		missileRateOfFireMillis = DT_TO_NEXT_MISSILE_MS;
+		timeOfLastMissileMillis = System.currentTimeMillis();
+		
 		maxLife          = SPACESHIP_MAX_HP;
 		maxFuel          = SPACESHIP_MAX_FUEL;
 		maxSpeed         = SPACESHIP_MAX_SPEED;
@@ -95,7 +109,18 @@ public class SpaceShip extends SpaceObject
 		life             = maxLife;
 		fuel             = maxFuel;
 		thrust           = 0;
-		angularThrust    = 0;
+		angularThrust    = 0;		
+	}
+	
+	public int getMissileRateOfFire()
+	{
+		return missileRateOfFireMillis;
+	}
+	
+	public void setMissileRateOfFire( int rof )
+	{
+		if( rof > 0 )
+			missileRateOfFireMillis = rof;
 	}
 	
 	public double getMaxTurningRate()
@@ -106,6 +131,17 @@ public class SpaceShip extends SpaceObject
 	public double getMaxThrust()
 	{
 		return maxThrust;
+	}
+	
+	public double getMaxSpeed()
+	{
+		return maxSpeed;
+	}
+	
+	public void setMaxSpeed( double newMaxSpeed )
+	{
+		if( newMaxSpeed > 0 && newMaxSpeed <= SPACESHIP_MAX_SPEED )
+			maxSpeed = newMaxSpeed;
 	}
 	
 	public void setSpaceShipThrust( double newThrust )
@@ -257,18 +293,23 @@ public class SpaceShip extends SpaceObject
 		//super.rotate(rotation);
 	}
 	
+	public ArrayList<Weapon> getWeaponsFired()
+	{
+		return weapons;
+	}
+	
 	public void fireMissile()
 	{
-		/*
-		if(missileCounter < MAX_MISSILES && !isDestroyed())
+		if( System.currentTimeMillis() - timeOfLastMissileMillis >= missileRateOfFireMillis )
 		{
-			weaponArr.add(new Missile((int) (super.getPosX() + super.getImgWidth()/2), 
-						 			  (int) (super.getPosY() + super.getImgHeight()/2),
-						 			   super.getVelocity(),
-						 			   super.getAngle()));
-			missileCounter++;
+			weapons.add( new Missile(this,
+		                 super.getPosX() + super.getImgWidth()/2.0, 
+		  	 			 super.getPosY() + super.getImgHeight()/2.0,
+			 			 super.getVelocityX(), super.getVelocityY(),
+			 			 super.getAngle() ));
+
+			timeOfLastMissileMillis = System.currentTimeMillis();
 		}
-		*/
 	}
 	
 	public void fireBomb()
@@ -324,6 +365,9 @@ public class SpaceShip extends SpaceObject
 	// This needs optimizing
 	public void drawThrustExhaust( Graphics g, double thrust, double rotThrust )
 	{
+		double leftExhaust;
+		double rightExhaust;
+		
 		Graphics2D g2d = ( Graphics2D )g;
 		Shape exhaustShape;
 		savedTransform = g2d.getTransform();
@@ -340,19 +384,22 @@ public class SpaceShip extends SpaceObject
 		           super.getPosX() + super.getImgWidth()/2,
 		           super.getPosY() + super.getImgHeight()/2);
 		
+		leftExhaust  = EXHAUST_MAX_LENGTH*(thrust + rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST;
+		rightExhaust = EXHAUST_MAX_LENGTH*(thrust - rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST;
+		
 		// Left exhaust
-		exhaustShape = new Ellipse2D.Double( super.getPosX() - EXHAUST_MAX_LENGTH*(thrust + rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST, 
+		exhaustShape = new Ellipse2D.Double( super.getPosX() - leftExhaust, 
 			                                 super.getPosY() + super.getImgHeight()/2.0 - EXHAUST_MAX_WIDTH/2.0 - DUAL_EXHAUST_SEPARATION, 
-			                                 EXHAUST_MAX_LENGTH*(thrust + rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST,   // Width 
+			                                 leftExhaust,   // Width 
 			                                 EXHAUST_MAX_WIDTH ); // height
 		
 	    g2d.fill( exhaustShape );
 	    g2d.draw( exhaustShape ); //g2d.draw( transf.createTransformedShape(r1) );
 	
 		// Right exhaust
-		exhaustShape = new Ellipse2D.Double( super.getPosX() - EXHAUST_MAX_LENGTH*(thrust - rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST, 
+		exhaustShape = new Ellipse2D.Double( super.getPosX() - rightExhaust, 
                                              super.getPosY() + super.getImgHeight()/2.0 - EXHAUST_MAX_WIDTH/2.0 + DUAL_EXHAUST_SEPARATION, 
-                                             EXHAUST_MAX_LENGTH*(thrust - rotThrust)/SpaceShip.SPACESHIP_MAX_THRUST,   // Width 
+                                             rightExhaust,   // Width 
                                              EXHAUST_MAX_WIDTH ); // height
 		
 		g2d.fill( exhaustShape );
@@ -372,9 +419,6 @@ public class SpaceShip extends SpaceObject
 
 		// Draw exhausts
 		drawThrustExhaust( g, thrust, getRotationDegPerSecSquared() );
-		
-		System.out.println( "thrust: " + thrust +
-				            "\trotThrust: " + getRotationDegPerSecSquared() );
 		
 		//if(hasMessages() > 0)
 		//	drawStatusMessages(g2d);
@@ -592,9 +636,4 @@ public class SpaceShip extends SpaceObject
 	{
 		
 	}*/
-	
-	public static double deg2rad(double angleInDeg)
-	{
-		return angleInDeg*Math.PI/180;
-	}
 }

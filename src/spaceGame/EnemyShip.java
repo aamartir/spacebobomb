@@ -35,6 +35,9 @@ public class EnemyShip extends SpaceShip
 		
 		strategy = NO_STRATEGY;
 		targetSpaceShip = null;
+		
+		// Make the enemies a little slower ( 25% slower )
+		super.setMaxSpeed( 0.80 * SpaceShip.SPACESHIP_MAX_SPEED );
 	}
 	
 	public boolean isAttacking()

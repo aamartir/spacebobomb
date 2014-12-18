@@ -1,21 +1,21 @@
 package com.weapons;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-import javax.swing.ImageIcon;
-
-import com.ship.effects.Explosion;
-
-import spaceGame.SpaceObject;
+import spaceGame.SpaceShip;
 
 public class Missile extends Weapon
 {
-	public Missile(int x, int y, double vel, double angle)
+	public Missile( SpaceShip sourceSpaceShip, double posX, double posY, double v_x, double v_y, double initialAngle )
 	{
-		super(Weapon.MISSILE_IMG, x, y, vel + Weapon.MISSILE_VEL, angle, Weapon.MISSILE_DMG);
+		super( sourceSpaceShip,
+			   Weapon.MISSILE_IMG, 
+			   posX, posY,  
+			   v_x + Math.cos( Math.toRadians(initialAngle) ) * Weapon.MISSILE_VEL, 
+			   v_y + Math.sin( Math.toRadians(initialAngle) ) * Weapon.MISSILE_VEL,
+			   initialAngle, 0,
+			   1.0,
+			   Weapon.MISSILE_DMG );
 		
-		super.getExplObj().setColor(Color.blue);
-		super.getExplObj().setEndRadius(Weapon.MISSILE_EXPL_RAD);
+		//super.getExplObj().setColor(Color.blue);
+		//super.getExplObj().setEndRadius(Weapon.MISSILE_EXPL_RAD);
 	}		
 }

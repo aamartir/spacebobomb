@@ -58,6 +58,7 @@ public class SpaceObject
 		setPosition( x, y );
 		setVisible( true );
 		transf = new AffineTransform();
+		destroyed = false;
 	}
 	
 	public SpaceObject( double x, double y, 
@@ -191,10 +192,9 @@ public class SpaceObject
 		return v_y;
 	}
 	
-	public void destroy( boolean val )
+	public void destroy()
 	{
-		this.destroyed = val;
-		this.visible = !val;
+		destroyed = true;
 	}
 	
 	public boolean isCollidingWith( SpaceObject other )
@@ -413,8 +413,10 @@ public class SpaceObject
 		g2d.rotate( Math.toRadians( this.angle ),
 					getPosX() + getImgWidth()/2, 
 					getPosY() + getImgHeight()/2 );
+		
 		transf.setToIdentity();
 		transf.translate( getPosX(), getPosY() );
+		
 		g2d.drawImage( getImg(), transf, null );
 		
 		// Only for debugging purposes

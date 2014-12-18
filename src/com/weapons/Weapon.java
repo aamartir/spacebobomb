@@ -1,36 +1,59 @@
 package com.weapons;
 
-import com.ship.effects.Explosion;
+import Mathematics.Vector2D;
+
+import com.ship.effects.Shockwave;
 import spaceGame.SpaceObject;
+import spaceGame.SpaceShip;
 
 public class Weapon extends SpaceObject
 {
-	public static final String PATH 			   	  = "/resources/Weapons/";
-	
-	public static final String MISSILE_IMG 		   	  = "missileBlue.png";
-	public static final String PLASMA_BOMB_IMG 	   	  = "plasmaBomb.png";
-	public static final String SEEK_MISSILE_IMG    	  = "seekMissile.png";
+	public static final String MISSILE_IMG 		   	  = "Weapons/missileBlue.png";
+	public static final String PLASMA_BOMB_IMG 	   	  = "Weapons/plasmaBomb.png";
+	public static final String SEEK_MISSILE_IMG    	  = "Weapons/seekMissile.png";
 
+	// Missiles
 	public static final int    MISSILE_DMG 		   	  = 10;
-	public static final int    PLASMA_BOMB_DMG 	   	  = 60;
-	public static final int    SEEK_MISSILE_DMG 	  = 80;
-
 	public static final int    MISSILE_EXPL_RAD 	  = 30;
-	public static final int    PLASMA_BOMB_EXPL_RAD   = 70;
-	public static final int    SEEK_MISSILE_EXPL_RAD  = 50;
-	public static final double SEEK_MISSILE_TURN_RATE = 0.1;
-
 	public static final double MISSILE_VEL 		   	  = 0.4;
-	public static final double PLASMA_BOMB_VEL 	   	  = 0.3;
-	public static final double SEEK_MISSILE_VEL    	  = 0.25;
+	public static final double DISTANCE_DURATION      = 600.0;
 	
-	private Explosion explObj;
+	private SpaceShip sourceSpaceShip;
+	private Shockwave shockWave;
 	private int dmg;
+	private double initialX;
+	private double initialY;
+	private boolean destroyed;
 	
-	public Weapon(String type, int x, int y, double vel, double angle, int dmg)
+	public Weapon( SpaceShip source,
+				   String type, 
+			       double posX, double posY, 
+			       double v_x, double v_y, 
+			       double initialAngle, double rotDegPerSec,
+			       double mass,
+			       int dmg )
 	{
-		super(PATH, type, x, y, vel, angle);
+		super( type, posX, posY, v_x, v_y, initialAngle, rotDegPerSec, mass );
 		this.dmg = dmg;
+		this.sourceSpaceShip = source;
+		this.destroyed = false;
+		
+		// keep track of the initial location
+		initialX = posX;
+		initialY = posY;
+	}
+	
+	public void updateWeaponMotion( double dt )
+	{
+		if( Vector2D.getDistanceBetween2Points(initialX, initialY, super.getPosX(), super.getPosY() ) < DISTANCE_DURATION )
+		{
+			super.updateSpaceObjectMotion( MISSILE_VEL, 0, 0, 0, dt );
+		}
+		else
+		{
+			// Missile will be removed from array, next time logic function is called (in Game.java)
+			destroy();
+		}
 	}
 	
 	public int getDmg() 
