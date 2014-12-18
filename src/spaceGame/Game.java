@@ -316,7 +316,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 2; i++ )
+		for( int i = 0; i < 5; i++ )
 		{
 			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
 			//EnemyShip.createEnemyShip( enemies, 800, 800, 0, 0, 100 );

@@ -50,7 +50,7 @@ public class SpaceShip extends SpaceObject
 	private static final double DUAL_EXHAUST_SEPARATION  = 6.0;
 	
 	// Weapons constants
-	public  static final int    DT_TO_NEXT_MISSILE_MS    = 250;
+	public  static final int    DT_TO_NEXT_MISSILE_MS    = 200;
 	
 	// Possible spaceship bodies
 	public static final String SPACESHIP_01  = "shipBlue.png";
@@ -363,8 +363,9 @@ public class SpaceShip extends SpaceObject
 	}*/
 	
 	// This needs optimizing
-	public void drawThrustExhaust( Graphics g, double thrust, double rotThrust )
+	public void drawThrustExhaust( Graphics g )
 	{
+		double rotThrust;
 		double leftExhaust;
 		double rightExhaust;
 		
@@ -376,6 +377,7 @@ public class SpaceShip extends SpaceObject
 		g.setColor( new Color(0, 191, 255) );
 		
 		// Scale rotation thrust to 0.5 of LINEAR THRUST
+		rotThrust = getRotationDegPerSecSquared();
 		if( Math.abs(rotThrust) > 0 )
 			rotThrust = (SpaceShip.SPACESHIP_MAX_THRUST/2.0)*(rotThrust/SpaceShip.SPACESHIP_MAX_TURNING_THRUST);
 		
@@ -414,11 +416,11 @@ public class SpaceShip extends SpaceObject
 		// Draw Object
 		super.drawSpaceObject( g );
 		
-		// Draw its life bar atop it
+		// Draw its life bar atop it (This method is efficient)
 		drawLifeBar( g );
 
-		// Draw exhausts
-		drawThrustExhaust( g, thrust, getRotationDegPerSecSquared() );
+		// Draw exhausts (This method is NOT very efficient)
+		drawThrustExhaust( g );
 		
 		//if(hasMessages() > 0)
 		//	drawStatusMessages(g2d);
