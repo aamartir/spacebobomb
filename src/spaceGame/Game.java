@@ -133,6 +133,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		// 1. Update player's motion
 		playerShip.updateSpaceShipMotion( dt );
 		
+		// Update spaceship messages
+		playerShip.updateSpaceShipStatusMessages( dt );
+		
 		// Move our player's weapons
 		for( int i = 0; i < playerShip.getWeaponsFired().size(); i++ )
 		{
@@ -153,6 +156,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		{
 			// Update AI and motion (motion is updated automatically within AI method).
 			enemy.AI( dt );
+			
+			// Update enemy status messages (motion)
+			enemy.updateSpaceShipStatusMessages( dt );
 			
 			// For every enemy ship, update motion of weapons fired. 
 			for( int i = 0; i < enemy.getWeaponsFired().size(); i++ )
@@ -649,6 +655,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 				inGame = false;
 			else if( key == KeyEvent.VK_SPACE )
 				playerShip.fireMissile();
+			else if( key == KeyEvent.VK_K )
+				playerShip.decreaseLife( 10 );
+			else if( key == KeyEvent.VK_L )
+				playerShip.addLife( 10 );
 		}
 		
 		public void keyReleased(KeyEvent e)

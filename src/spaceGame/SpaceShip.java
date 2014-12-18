@@ -21,7 +21,7 @@ import panel.skills.Skill;
 import Mathematics.Vector2D;
 
 import com.ship.effects.Shockwave;
-import com.ship.effects.ShipStatusMessage;
+import com.ship.effects.StatusMessage;
 import com.ship.effects.SpaceShipTrail;
 import com.space.Asteroid;
 import com.weapons.PlasmaBomb;
@@ -86,7 +86,7 @@ public class SpaceShip extends SpaceObject
 	private ArrayList<Weapon> weapons;
 	
 	// Status messages to display on top of spaceship 
-	private ArrayList<ShipStatusMessage> msgArr;
+	private ArrayList<StatusMessage> statusMessages;
 
 	public SpaceShip( String spaceshipType, double x, double y, double v_x, double v_y, double initialAngle, double mass )
 	{
@@ -97,6 +97,8 @@ public class SpaceShip extends SpaceObject
 		
 		// Spaceship parameters
 		weapons                 = new ArrayList<Weapon>();
+		statusMessages			= new ArrayList<StatusMessage>();
+		
 		missileRateOfFireMillis = DT_TO_NEXT_MISSILE_MS;
 		timeOfLastMissileMillis = System.currentTimeMillis();
 		
@@ -186,6 +188,7 @@ public class SpaceShip extends SpaceObject
 		return ( super.getAccelMagnitude() );
 	}
 	
+	/*
 	public void destroy()
 	{
 		this.setCurrentLife(0);
@@ -193,16 +196,9 @@ public class SpaceShip extends SpaceObject
 		
 		// Play sound effect
 		SFX_Player.playSound(SFX_Player.SPACE_SOUND_PATH, SFX_Player.IMPLOSION_01);
-		
-		/*
-		if(this instanceof PlayerShip)
-		{
-			FrontPanel.deactivatePanel();	
-			//Game.inGame = false;
-		}
-		*/
 	}
-
+	*/
+	
 	/*
 	public double getFuelCapacity()
 	{
@@ -268,25 +264,41 @@ public class SpaceShip extends SpaceObject
 	}
 	*/
 	
-	public int hasMessages()
+	public boolean hasStatusMessages()
 	{
-		return msgArr.size();
+		return ( statusMessages.size() > 0 );
 	}
 	
-	public void flushAllMessages()
+	public void flushAllStatusMessages()
 	{
-		msgArr.clear();
+		if( hasStatusMessages() )
+			statusMessages.clear();
 	}
 	
-	public void newMessage( String msg, Color c )
+	public void newStatusMessage( double x, double y, String msg, Color c )
 	{
-		msgArr.add(new ShipStatusMessage(msg, c));
+		statusMessages.add( new StatusMessage( x, y, msg, c) );
 	}
 	
 	/*public Explosion getExplotionObj()
 	{
 		return expl;
 	}*/
+	
+	public void updateSpaceShipStatusMessages( double dt )
+	{
+		// Update status messages
+		for( int i = 0; i < statusMessages.size(); i++ )
+		{
+			if( statusMessages.get(i).isCompleted() )
+			{
+				statusMessages.remove( i );
+				continue;
+			}
+			else
+				statusMessages.get(i).updateStatusMessage( dt );
+		}
+	}
 	
 	public void rotate()
 	{
@@ -422,8 +434,9 @@ public class SpaceShip extends SpaceObject
 		// Draw exhausts (This method is NOT very efficient)
 		drawThrustExhaust( g );
 		
-		//if(hasMessages() > 0)
-		//	drawStatusMessages(g2d);
+		// Draw status messages
+		if( hasStatusMessages() )
+			drawStatusMessages( g );
 		
 		/*if(this instanceof AlienShip)
 		{
@@ -496,31 +509,13 @@ public class SpaceShip extends SpaceObject
 		g2d.fillArc((int)(getPosX()-getImgWidth()/2), (int)(getPosY()-getImgHeight()/4), 20, 20, 0, 360);
 	}
 	
-	public void drawStatusMessages(Graphics2D g2d)
+	public void drawStatusMessages( Graphics g )
 	{
-		/*
-		int i = 1;
-		lastMessage = msgArr.get(0);
-		
-		if(!lastMessage.isFinished())
-			lastMessage.drawMessage(g2d, (int) getPosX(), (int) getPosY());
-		else
+		for( StatusMessage msg : statusMessages )
 		{
-			msgArr.remove(0);
-			i = 0;
+			if( !msg.isCompleted() )
+				msg.drawMessage( g );
 		}
-			
-		while(i < msgArr.size())
-		{
-			thisMessage = msgArr.get(i);
-			
-			if(lastMessage.getYincr() < -12 && !thisMessage.isFinished())
-				thisMessage.drawMessage(g2d, (int) getPosX(), (int) getPosY());
-			
-			lastMessage = thisMessage;
-			i++;
-		}
-		*/
 	}	
 	
 	public void drawShipStatusMessage(Graphics g, String str, Color c)
@@ -538,7 +533,7 @@ public class SpaceShip extends SpaceObject
 	public void decreaseLife( int val )
 	{
 		this.life -= val;
-		//this.newMessage("-" + val + " HP", new Color(255, 0, 0));
+		newStatusMessage( (getPosX() - getImgWidth()/2.0), getPosY(), "-" + val + " HP", StatusMessage.STATUS_MSG_RED_COLOR );
 		
 		if( this.life <= 0 )
 			destroy();
@@ -551,11 +546,13 @@ public class SpaceShip extends SpaceObject
 	
 	public void addLife( double val )
 	{
-		this.life += val;
-		//this.newMessage("+" + val + " HP", new Color(0, 255, 0));
+		if( (life + val) > maxLife )
+			val = maxLife - life;
 		
-		if( this.life > this.maxLife )
-			this.life = this.maxLife;
+		life += val;
+		
+		// Display status message
+		newStatusMessage( getPosX() - getImgWidth()/2.0, getPosY(), "+" + val + " HP", StatusMessage.STATUS_MSG_GREEN_COLOR );
 	}
 	
 	public void increaseMaxLife( double val )
