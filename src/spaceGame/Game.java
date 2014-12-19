@@ -655,10 +655,6 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 				inGame = false;
 			else if( key == KeyEvent.VK_SPACE )
 				playerShip.fireMissile();
-			else if( key == KeyEvent.VK_K )
-				playerShip.decreaseLife( 10 );
-			else if( key == KeyEvent.VK_L )
-				playerShip.addLife( 10 );
 		}
 		
 		public void keyReleased(KeyEvent e)

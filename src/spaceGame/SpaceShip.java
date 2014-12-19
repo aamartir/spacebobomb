@@ -11,22 +11,12 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 import java.util.ArrayList;
-
 import javax.swing.ImageIcon;
-
-import panel.FrontPanel;
-import panel.SkillSpace;
-import panel.skills.Skill;
-
+import Mathematics.MyMath;
 import Mathematics.Vector2D;
-
 import com.ship.effects.Shockwave;
 import com.ship.effects.StatusMessage;
-import com.ship.effects.SpaceShipTrail;
-import com.space.Asteroid;
-import com.weapons.PlasmaBomb;
 import com.weapons.Missile;
-import com.weapons.SeekMissile;
 import com.weapons.Weapon;
 
 public class SpaceShip extends SpaceObject
@@ -41,7 +31,7 @@ public class SpaceShip extends SpaceObject
 	public static final double SPACESHIP_MASS                    = 1.0;
 	public static final double SPACESHIP_MAX_HP                  = 100;
 	public static final double SPACESHIP_MAX_FUEL                = 100;
-	public static final double SPACESHIP_FUEL_CONSUMPTION        = 1.0; // units of fuel per unit of thrust per second
+	public static final double SPACESHIP_MAX_FUEL_CONSUMPTION    = 0.00075; // units of fuel per unit of thrust per second
 	
 	// Drawing constants
 	private static final double LIFE_BAR_WIDTH     		 = 50.0;
@@ -81,7 +71,7 @@ public class SpaceShip extends SpaceObject
 	private double maxThrust;
 	private double maxAngularThrust; // angular acceleration
 	private double maxTurningRate; // angular speed
-	private double maxFuel;
+	private double maxFuelCapacity;
 	
 	// Weapons instance variables
 	private int missileRateOfFireMillis;
@@ -106,13 +96,13 @@ public class SpaceShip extends SpaceObject
 		timeOfLastMissileMillis = System.currentTimeMillis();
 		
 		maxLife          = SPACESHIP_MAX_HP;
-		maxFuel          = SPACESHIP_MAX_FUEL;
+		maxFuelCapacity  = SPACESHIP_MAX_FUEL;
 		maxSpeed         = SPACESHIP_MAX_SPEED;
 		maxThrust 	     = SPACESHIP_MAX_THRUST;
 		maxTurningRate   = SPACESHIP_TURNING_RATE; // degrees per second 
 		maxAngularThrust = SPACESHIP_MAX_TURNING_THRUST;
 		life             = maxLife;
-		fuel             = maxFuel;
+		fuel             = maxFuelCapacity;
 		thrust           = 0;
 		angularThrust    = 0;		
 	}
@@ -192,8 +182,9 @@ public class SpaceShip extends SpaceObject
 		// Call the method of the super class
 		super.updateSpaceObjectMotion( maxSpeed, maxTurningRate, SPACESHIP_THRUST_FRICTION, SPACESHIP_ANGULAR_THRUST_FRICTION, dt );
 		
-		// Consume fuel if spaceship is using thrusters
-		consumeFuel( SPACESHIP_FUEL_CONSUMPTION * (thrust + Math.abs(angularThrust)) * dt );
+		// Consume fuel if spaceship is using forward thrusters
+		if( thrust > 0 )
+			consumeFuel( SPACESHIP_MAX_FUEL_CONSUMPTION * MyMath.map( thrust, SPACESHIP_MAX_THRUST ) * dt );
 	}
 	
 	public double getSpaceShipAcceleration()
@@ -221,15 +212,11 @@ public class SpaceShip extends SpaceObject
 	
 	public void addFuel( double val ) // Function can also be used to subtract fuel
 	{
-		/*
-		boosterFuel += val;
-		//newMessage("+" + val+ " Fuel", new Color(0, 0, 255));
+		if( val + fuel > maxFuelCapacity )
+			val = (maxFuelCapacity - fuel);
 		
-		if(boosterFuel < 0)
-			boosterFuel = 0;
-		else if(boosterFuel > MAX_BOOSTER_FUEL)
-			boosterFuel = MAX_BOOSTER_FUEL;
-		 */
+		fuel += val;
+		newStatusMessage( getPosX() - getImgWidth()/2.0, getPosY(), "+" + val+ " Fuel", Color.YELLOW );
 	}
 	
 	public double getCurrentFuel()
@@ -240,7 +227,7 @@ public class SpaceShip extends SpaceObject
 	public double getFuelCapacity()
 	{
 		
-		return maxFuel;
+		return maxFuelCapacity;
 	}
 	
 	public void consumeFuel( double val )
@@ -249,12 +236,7 @@ public class SpaceShip extends SpaceObject
 		if( fuel < 0 )
 			fuel = 0;
 	}
-	
-	public boolean hasBoosterFuel()
-	{
-		return false;
-	}
-	
+
 	// Use/stop boosters affect the velocity of the craft
 	public void useBoosters()
 	{
@@ -505,8 +487,8 @@ public class SpaceShip extends SpaceObject
 		Shape base, lifeBar;
 		Graphics2D g2d = (Graphics2D) g;
 		
-		base    = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()-2*LIFE_BAR_HEIGHT , LIFE_BAR_WIDTH, LIFE_BAR_HEIGHT );
-		lifeBar = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()-2*LIFE_BAR_HEIGHT, LIFE_BAR_WIDTH * getCurrentLife()/getMaxLife(), LIFE_BAR_HEIGHT );
+		base    = new Rectangle2D.Double( getPosX()-getImgWidth(), getPosY()-16, LIFE_BAR_WIDTH, LIFE_BAR_HEIGHT );
+		lifeBar = new Rectangle2D.Double( getPosX()-getImgWidth(), getPosY()-16, LIFE_BAR_WIDTH * getCurrentLife()/getMaxLife(), LIFE_BAR_HEIGHT );
 		
 		g2d.setColor( Color.RED );
 		g2d.fill( base );
@@ -520,8 +502,8 @@ public class SpaceShip extends SpaceObject
 		Shape base, fuelBar;
 		Graphics2D g2d = (Graphics2D) g;
 		
-		base    = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT );
-		fuelBar = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, FUEL_BAR_WIDTH * getCurrentFuel()/getFuelCapacity(), FUEL_BAR_HEIGHT );
+		base    = new Rectangle2D.Double( getPosX()-getImgWidth(), getPosY()-10, FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT );
+		fuelBar = new Rectangle2D.Double( getPosX()-getImgWidth(), getPosY()-10, FUEL_BAR_WIDTH * getCurrentFuel()/getFuelCapacity(), FUEL_BAR_HEIGHT );
 		
 		g2d.setColor( Color.RED );
 		g2d.fill( base );
