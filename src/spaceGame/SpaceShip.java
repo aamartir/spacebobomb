@@ -290,12 +290,7 @@ public class SpaceShip extends SpaceObject
 		// Update status messages
 		for( int i = 0; i < statusMessages.size(); i++ )
 		{
-			if( statusMessages.get(i).isCompleted() )
-			{
-				statusMessages.remove( i );
-				continue;
-			}
-			else
+			if( !statusMessages.get(i).isCompleted() )
 				statusMessages.get(i).updateStatusMessage( dt );
 		}
 	}
@@ -511,12 +506,17 @@ public class SpaceShip extends SpaceObject
 	
 	public void drawStatusMessages( Graphics g )
 	{
-		for( StatusMessage msg : statusMessages )
+		for( int i = 0; i < statusMessages.size(); i++ )
 		{
-			if( !msg.isCompleted() )
-				msg.drawMessage( g );
+			if( !statusMessages.get(i).isCompleted() )
+				statusMessages.get(i).drawMessage( g );
+			else
+			{
+				statusMessages.remove( i );
+				continue;
+			}
 		}
-	}	
+	}		
 	
 	public void drawShipStatusMessage(Graphics g, String str, Color c)
 	{
