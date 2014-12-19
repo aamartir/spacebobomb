@@ -16,7 +16,9 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.ImageIcon;
+
 import Mathematics.Vector2D;
+
 import com.ship.effects.Shockwave;
 import com.ship.effects.Target;
 
@@ -59,6 +61,7 @@ public class SpaceObject
 		setVisible( true );
 		transf = new AffineTransform();
 		destroyed = false;
+		visible = true;
 	}
 	
 	public SpaceObject( double x, double y, 
@@ -192,9 +195,16 @@ public class SpaceObject
 		return v_y;
 	}
 	
-	public void destroy()
+	public void destroySpaceObject( boolean shockwave )
 	{
 		destroyed = true;
+		visible = false;
+		
+		Shockwave.newShockwave( getPosX() + getImgWidth()/2.0, 
+							    getPosY() + getImgHeight()/2.0 ); 
+		
+		// Play sound effect
+		SFX_Player.playSound(SFX_Player.SPACE_SOUND_PATH, SFX_Player.IMPLOSION_01);
 	}
 	
 	public boolean isCollidingWith( SpaceObject other )
@@ -427,10 +437,9 @@ public class SpaceObject
 		g2d.setTransform( savedTransform );
 	}
 	
-	public void explode()
+	public void explode( boolean shockwave )
 	{
-		//expl.setVisible(true);
-		//setDestroyed(true);
+		destroySpaceObject( shockwave );
 	}
 	
 	/*

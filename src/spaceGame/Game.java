@@ -21,6 +21,7 @@ import java.awt.event.WindowEvent;
 //import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
+import com.ship.effects.Shockwave;
 import com.space.Asteroid;
 import com.weapons.Weapon;
 
@@ -182,6 +183,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			asteroid.updateAsteroidMotion( dt );
 		}
 		
+		// Update shockwave and explosions
+		Shockwave.updateShockwaves( dt );
+		
 		// 2. Check collisions
 		// ...
 		
@@ -276,8 +280,11 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 				}
 			}
 			
+			// Draw shockwaves and explosions
+			Shockwave.drawShockwaves( graphics );
+			
 			// Draw other stuff
-			// TODO
+			
 		}
 		finally
 		{
@@ -322,7 +329,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 5; i++ )
+		for( int i = 0; i < 2; i++ )
 		{
 			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
 			//EnemyShip.createEnemyShip( enemies, 800, 800, 0, 0, 100 );
@@ -655,6 +662,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 				inGame = false;
 			else if( key == KeyEvent.VK_SPACE )
 				playerShip.fireMissile();
+			else if( key == KeyEvent.VK_K )
+				playerShip.decreaseLife( 10 ); 
 		}
 		
 		public void keyReleased(KeyEvent e)

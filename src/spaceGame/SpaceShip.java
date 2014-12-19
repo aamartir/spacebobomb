@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import Mathematics.MyMath;
 import Mathematics.Vector2D;
-import com.ship.effects.Shockwave;
 import com.ship.effects.StatusMessage;
 import com.weapons.Missile;
 import com.weapons.Weapon;
@@ -192,16 +191,11 @@ public class SpaceShip extends SpaceObject
 		return ( super.getAccelMagnitude() );
 	}
 	
-	/*
-	public void destroy()
+	public void destroySpaceShip()
 	{
 		this.setCurrentLife(0);
-		super.explode();
-		
-		// Play sound effect
-		SFX_Player.playSound(SFX_Player.SPACE_SOUND_PATH, SFX_Player.IMPLOSION_01);
+		super.destroySpaceObject( true );
 	}
-	*/
 	
 	/*
 	public double getFuelCapacity()
@@ -433,29 +427,32 @@ public class SpaceShip extends SpaceObject
 	
 	public void drawSpaceShip( Graphics g )
 	{
-		// Draw Object
-		super.drawSpaceObject( g );
-		
-		// Draw its life bar atop it (This method is efficient)
-		drawLifeBar( g );
-
-		// Draw fuel bar
-		drawFuelBar( g );
-		
-		// Draw exhausts (This method is NOT very efficient)
-		drawThrustExhaust( g );
-		
-		// Draw status messages
-		if( hasStatusMessages() )
-			drawStatusMessages( g );
-		
-		/*if(this instanceof AlienShip)
+		if( super.isVisible() )
 		{
-			AlienShip a = (AlienShip)this;
-			g2d.setColor(Color.gray);
-			g2d.drawString("Heading( " + (int)getAngle() + ")", (int)getPosX(), (int)getPosY()-getImgHeight()/2);
-			g2d.drawString("TargetHeading( " + (int)a.getTargetAngle() + ")", (int)a.getPosX(), (int)a.getPosY()-a.getImgHeight());	
-		}*/
+			// Draw Object
+			super.drawSpaceObject( g );
+			
+			// Draw its life bar atop it (This method is efficient)
+			drawLifeBar( g );
+	
+			// Draw fuel bar
+			drawFuelBar( g );
+			
+			// Draw exhausts (This method is NOT very efficient)
+			drawThrustExhaust( g );
+			
+			// Draw status messages
+			if( hasStatusMessages() )
+				drawStatusMessages( g );
+			
+			/*if(this instanceof AlienShip)
+			{
+				AlienShip a = (AlienShip)this;
+				g2d.setColor(Color.gray);
+				g2d.drawString("Heading( " + (int)getAngle() + ")", (int)getPosX(), (int)getPosY()-getImgHeight()/2);
+				g2d.drawString("TargetHeading( " + (int)a.getTargetAngle() + ")", (int)a.getPosX(), (int)a.getPosY()-a.getImgHeight());	
+			}*/
+		}
 	}
 	
 	/*private void drawBoosterFuel(Graphics2D g2d)
@@ -563,11 +560,14 @@ public class SpaceShip extends SpaceObject
 	
 	public void decreaseLife( int val )
 	{
-		this.life -= val;
-		newStatusMessage( (getPosX() - getImgWidth()/2.0), getPosY(), "-" + val + " HP", StatusMessage.STATUS_MSG_RED_COLOR );
-		
-		if( this.life <= 0 )
-			destroy();
+		if( this.life > 0 )
+		{
+			this.life -= val;
+			newStatusMessage( (getPosX() - getImgWidth()/2.0), getPosY(), "-" + val + " HP", StatusMessage.STATUS_MSG_RED_COLOR );
+			
+			if( this.life <= 0 && !isDestroyed() )
+				destroySpaceShip();
+		}
 	}
 	
 	public double getMaxLife()
