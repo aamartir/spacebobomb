@@ -41,10 +41,13 @@ public class SpaceShip extends SpaceObject
 	public static final double SPACESHIP_MASS                    = 1.0;
 	public static final double SPACESHIP_MAX_HP                  = 100;
 	public static final double SPACESHIP_MAX_FUEL                = 100;
+	public static final double SPACESHIP_FUEL_CONSUMPTION        = 1.0; // units of fuel per unit of thrust per second
 	
 	// Drawing constants
 	private static final double LIFE_BAR_WIDTH     		 = 50.0;
 	private static final double LIFE_BAR_HEIGHT    		 = 5.0;
+	private static final double FUEL_BAR_WIDTH           = LIFE_BAR_WIDTH;
+	private static final double FUEL_BAR_HEIGHT          = LIFE_BAR_HEIGHT;
 	private static final double EXHAUST_MAX_LENGTH 	     = 10.0;
 	private static final double EXHAUST_MAX_WIDTH  	     = 5.0;
 	private static final double DUAL_EXHAUST_SEPARATION  = 6.0;
@@ -175,12 +178,22 @@ public class SpaceShip extends SpaceObject
 		
 	public void updateSpaceShipMotion( double dt )
 	{
-		// Set acceleration (based on angle)
+		// Make sure we have fuel
+		if( fuel <= 0 )
+		{
+			thrust = 0;
+			super.setRotationDegPerSecSquared( 0 );
+		}
+		
+		// Set acceleration (based on angle). Need fuel for this.
 		super.setAcceleration( thrust * Math.cos(Math.toRadians(getAngle())),
 							   thrust * Math.sin(Math.toRadians(getAngle())) );
 		
 		// Call the method of the super class
 		super.updateSpaceObjectMotion( maxSpeed, maxTurningRate, SPACESHIP_THRUST_FRICTION, SPACESHIP_ANGULAR_THRUST_FRICTION, dt );
+		
+		// Consume fuel if spaceship is using thrusters
+		consumeFuel( SPACESHIP_FUEL_CONSUMPTION * (thrust + Math.abs(angularThrust)) * dt );
 	}
 	
 	public double getSpaceShipAcceleration()
@@ -206,7 +219,7 @@ public class SpaceShip extends SpaceObject
 	}
 	*/
 	
-	public void addBoosterFuel(double val) // Function can also be used to subtract fuel
+	public void addFuel( double val ) // Function can also be used to subtract fuel
 	{
 		/*
 		boosterFuel += val;
@@ -217,6 +230,24 @@ public class SpaceShip extends SpaceObject
 		else if(boosterFuel > MAX_BOOSTER_FUEL)
 			boosterFuel = MAX_BOOSTER_FUEL;
 		 */
+	}
+	
+	public double getCurrentFuel()
+	{
+		return fuel;
+	}
+	
+	public double getFuelCapacity()
+	{
+		
+		return maxFuel;
+	}
+	
+	public void consumeFuel( double val )
+	{
+		fuel -= val;
+		if( fuel < 0 )
+			fuel = 0;
 	}
 	
 	public boolean hasBoosterFuel()
@@ -431,6 +462,9 @@ public class SpaceShip extends SpaceObject
 		// Draw its life bar atop it (This method is efficient)
 		drawLifeBar( g );
 
+		// Draw fuel bar
+		drawFuelBar( g );
+		
 		// Draw exhausts (This method is NOT very efficient)
 		drawThrustExhaust( g );
 		
@@ -476,14 +510,29 @@ public class SpaceShip extends SpaceObject
 		Shape base, lifeBar;
 		Graphics2D g2d = (Graphics2D) g;
 		
-		base    = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, LIFE_BAR_WIDTH, LIFE_BAR_HEIGHT );
-		lifeBar = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, LIFE_BAR_WIDTH * getCurrentLife()/getMaxLife(), LIFE_BAR_HEIGHT );
+		base    = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()-2*LIFE_BAR_HEIGHT , LIFE_BAR_WIDTH, LIFE_BAR_HEIGHT );
+		lifeBar = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()-2*LIFE_BAR_HEIGHT, LIFE_BAR_WIDTH * getCurrentLife()/getMaxLife(), LIFE_BAR_HEIGHT );
 		
 		g2d.setColor( Color.RED );
 		g2d.fill( base );
 		
 		g2d.setColor( Color.GREEN );
 		g2d.fill( lifeBar );
+	}
+	
+	private void drawFuelBar( Graphics g )
+	{
+		Shape base, fuelBar;
+		Graphics2D g2d = (Graphics2D) g;
+		
+		base    = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT );
+		fuelBar = new Rectangle2D.Double( getPosX()-getImgWidth()/2.0, getPosY()-getImgHeight()/4.0, FUEL_BAR_WIDTH * getCurrentFuel()/getFuelCapacity(), FUEL_BAR_HEIGHT );
+		
+		g2d.setColor( Color.RED );
+		g2d.fill( base );
+		
+		g2d.setColor( Color.YELLOW );
+		g2d.fill( fuelBar );
 	}
 	
 	private void drawIntention(Graphics2D g2d, int intent)
