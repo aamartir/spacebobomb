@@ -12,7 +12,8 @@ public class EnemyShip extends SpaceShip
 	public static final int    EVADE_STRATEGY             = 4;
 	public static final int    EVADE_AND_ESCAPE_STRATEGY  = 5;
 	
-	public static final double ATTACK_RADIUS              = 600.0;
+	public static final double FOLLOW_RADIUS              = 500.0;
+	public static final double ATTACK_RADIUS              = 450.0;
 	public static final double PROXIMITY_RADIUS           = 300.0;	
 	
 	// Attack Parameters
@@ -62,9 +63,16 @@ public class EnemyShip extends SpaceShip
 	{
 		switch( strategy )
 		{
+			case NO_STRATEGY:
+			case CRUISE_STRATEGY:
+				if( distanceWithRespectTo( Game.getPlayer()) <= FOLLOW_RADIUS )
+					followSpaceShip( Game.getPlayer() );
+				
+				break;
+				
 			case FOLLOW_STRATEGY:
 			{
-				if( targetSpaceShip != null )
+				if( targetSpaceShip != null && distanceWithRespectTo(targetSpaceShip) <= FOLLOW_RADIUS )
 				{
 					// Angle error
 					double angleErr = getSupplementaryAngle( angleWithRespectTo( targetSpaceShip ) - getAngle() );
@@ -104,6 +112,15 @@ public class EnemyShip extends SpaceShip
 						else
 							setSpaceShipThrust( 0 );
 					}
+				}
+				else
+				{
+					strategy = NO_STRATEGY;
+					targetSpaceShip = null;
+					
+					// Stop using thrusters
+					super.setSpaceShipThrust( 0 );
+					super.setSpaceShipAngularThrust( 0 );
 				}
 				
 				break;
@@ -184,7 +201,7 @@ public class EnemyShip extends SpaceShip
 			strategy = FOLLOW_AND_ATTACK_STRATEGY;
 		}
 	}
-	
+
 	public void escapeFrom(SpaceShip other)
 	{
 		double dist = distanceWithRespectTo(other);

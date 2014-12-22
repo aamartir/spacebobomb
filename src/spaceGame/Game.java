@@ -3,6 +3,8 @@ package spaceGame;
 // For Drawing
 import javax.swing.JFrame;
 
+import panel.MiniMap;
+
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
@@ -48,6 +50,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	// Space objects
 	public  static PlayerShip playerShip;
 	private static SpaceCamera camera;
+	private static MiniMap miniMap;
 	private static ArrayList<EnemyShip> enemies;
 	private static ArrayList<Asteroid> asteroids;
 
@@ -114,6 +117,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 		// Initialize camera
 		camera = new SpaceCamera( playerShip.getPosX(), playerShip.getPosY(), screenWidth, screenHeight, playerShip );
+		
+		// Initialize minimap
+		miniMap = new MiniMap( screenWidth, screenHeight, 100, 200 );
 		
 		// Start logic and rendering threads
 		inGame = true; // Has to be called before start of threads.
@@ -227,6 +233,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			// Draw msg "Escape to exit game"
 			drawScreenMessage( graphics, "Press Escape key to exit game", 14, 20, 60, Color.YELLOW );
 						
+			// The minimap is the last thing to draw
+			miniMap.drawMiniMap( graphics );
+						
 			// Translate screen so that player is always in the center (This should be done before all objects are drawn, so that
 			// everything is translated properly).
 			//((Graphics2D)graphics).translate( -playerShip.getPosX() + getWidth()/2.0, -playerShip.getPosY() + getHeight()/2.0 );
@@ -282,9 +291,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			
 			// Draw shockwaves and explosions
 			Shockwave.drawShockwaves( graphics );
-			
+
 			// Draw other stuff
-			
 		}
 		finally
 		{
@@ -329,9 +337,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 2; i++ )
+		for( int i = 0; i < 200; i++ )
 		{
-			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, screenWidth, screenHeight );
+			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 10*screenWidth, 10*screenHeight );
 			//EnemyShip.createEnemyShip( enemies, 800, 800, 0, 0, 100 );
 			enemies.get( i ).followSpaceShip( playerShip );
 		}
@@ -346,7 +354,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		asteroids = new ArrayList<Asteroid>();
 		
 		// Create a couple of asteroids
-		for( int i = 0; i < 10; i++ )
+		for( int i = 0; i < 100; i++ )
 		{
 			Asteroid.createRandomAsteroid( asteroids, 
 					                       Asteroid.ASTEROID_01, 
@@ -515,7 +523,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		*/
 	}
 	
-	public static boolean isWithinBounds(SpaceObject obj)
+	public static boolean isWithinBounds( SpaceObject obj )
 	{
 		int x = (int) obj.getPosX();
 		int y = (int) obj.getPosY();
@@ -524,6 +532,28 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			return true;
 		else
 			return false;
+	}
+	
+	// Return all enemies for now
+	public static ArrayList<EnemyShip> getEnemiesWithinViewport()
+	{
+		return enemies;
+	}
+	
+	public static ArrayList<Asteroid> getAsteroidsWithinViewport()
+	{
+		return asteroids;
+	}
+	
+	
+	public static SpaceCamera getCamera()
+	{
+		return camera;
+	}
+	
+	public static SpaceShip getPlayer()
+	{
+		return playerShip;
 	}
 	
 	public void drawGameInfo( Graphics g )

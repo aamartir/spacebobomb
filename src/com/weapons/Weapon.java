@@ -45,7 +45,7 @@ public class Weapon extends SpaceObject
 		else
 		{
 			// Missile will be removed from array, next time logic function is called (in Game.java)
-			super.destroy();
+			super.destroySpaceObject( false );
 		}
 	}
 	

@@ -200,11 +200,14 @@ public class SpaceObject
 		destroyed = true;
 		visible = false;
 		
-		Shockwave.newShockwave( getPosX() + getImgWidth()/2.0, 
-							    getPosY() + getImgHeight()/2.0 ); 
-		
-		// Play sound effect
-		SFX_Player.playSound(SFX_Player.SPACE_SOUND_PATH, SFX_Player.IMPLOSION_01);
+		if( shockwave )
+		{
+			Shockwave.newShockwave( getPosX() + getImgWidth()/2.0, 
+								    getPosY() + getImgHeight()/2.0 ); 
+			
+			// Play sound effect
+			SFX_Player.playSound(SFX_Player.SPACE_SOUND_PATH, SFX_Player.IMPLOSION_01);
+		}
 	}
 	
 	public boolean isCollidingWith( SpaceObject other )
