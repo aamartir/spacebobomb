@@ -53,8 +53,8 @@ public class SpaceCamera
 	{
 		if( targetToFollow != null )
 		{
-			posX = targetToFollow.getPosX();
-			posY = targetToFollow.getPosY();
+			posX = targetToFollow.getPosX() + targetToFollow.getImgWidth()/2.0;
+			posY = targetToFollow.getPosY() + targetToFollow.getImgHeight()/2.0;
 		}
 	}
 	

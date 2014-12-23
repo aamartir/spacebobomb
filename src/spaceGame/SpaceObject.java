@@ -476,23 +476,23 @@ public class SpaceObject
 	
 	public double distanceWithRespectTo( SpaceObject other )
 	{
-		double diffX = this.getPosX() - other.getPosX();
-		double diffY = this.getPosY() - other.getPosY();
+		double diffX = (this.getPosX() + this.getImgWidth()/2.0) - (other.getPosX() + other.getImgWidth()/2.0);
+		double diffY = (this.getPosY() + this.getImgHeight()/2.0) - (other.getPosY() + other.getImgHeight()/2.0);
 		
 		return Math.sqrt(diffX*diffX + diffY*diffY);
 	}
 	
 	public double angleWithRespectTo( SpaceObject other )
 	{
-		double diffX = this.getPosX() - other.getPosX();
-		double diffY = this.getPosY() - other.getPosY();
+		double diffX = (this.getPosX() + this.getImgWidth()/2.0) - (other.getPosX() + other.getImgWidth()/2.0);
+		double diffY = (this.getPosY() + this.getImgHeight()/2.0) - (other.getPosY() + other.getImgHeight()/2.0);
 		
 		return checkAngleBoundaries((Math.atan2(diffY, diffX) + Math.PI)*180/Math.PI); // target angle
 	}
 	
 	public static double angleWithRespectToPoint( SpaceObject obj, double x, double y )
 	{
-		return Math.atan2(y-obj.getPosY(), x-obj.getPosX());
+		return Math.atan2( y - obj.getPosY() + obj.getImgHeight()/2.0, x - obj.getPosX() + obj.getImgWidth()/2.0 );
 	}
 	
 	public static double angleWithRespectToPoint( double x1, double y1, double x2, double y2 )

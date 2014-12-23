@@ -337,9 +337,9 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 200; i++ )
+		for( int i = 0; i < 10; i++ )
 		{
-			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 10*screenWidth, 10*screenHeight );
+			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
 			//EnemyShip.createEnemyShip( enemies, 800, 800, 0, 0, 100 );
 			enemies.get( i ).followSpaceShip( playerShip );
 		}
@@ -353,8 +353,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		
 		asteroids = new ArrayList<Asteroid>();
 		
-		// Create a couple of asteroids
-		for( int i = 0; i < 100; i++ )
+		// Create some asteroids
+		for( int i = 0; i < 10; i++ )
 		{
 			Asteroid.createRandomAsteroid( asteroids, 
 					                       Asteroid.ASTEROID_01, 
@@ -534,17 +534,17 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			return false;
 	}
 	
-	// Return all enemies for now
+	// Return all enemies for now (Need only to return objects within viewable area)
 	public static ArrayList<EnemyShip> getEnemiesWithinViewport()
 	{
 		return enemies;
 	}
 	
+	// Return all asteroids for now (Need only to return objects within viewable area)
 	public static ArrayList<Asteroid> getAsteroidsWithinViewport()
 	{
 		return asteroids;
 	}
-	
 	
 	public static SpaceCamera getCamera()
 	{
@@ -692,8 +692,8 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 				inGame = false;
 			else if( key == KeyEvent.VK_SPACE )
 				playerShip.fireMissile();
-			else if( key == KeyEvent.VK_K )
-				playerShip.decreaseLife( 10 ); 
+			else if( key == KeyEvent.VK_K ) // This is to test different features
+				playerShip.addLife(10);
 		}
 		
 		public void keyReleased(KeyEvent e)

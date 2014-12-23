@@ -33,15 +33,15 @@ public class StatusMessage
 	
 	public StatusMessage( double posX, double posY, String msg, Color c )
 	{
-		this.initialX = posX;
-		this.initialY = posY;
-		this.posX = posX;
-		this.posY = posY;
+		this.initialX  = posX;
+		this.initialY  = posY;
+		this.posX      = posX;
+		this.posY      = posY;
 		
 		this.msgString = msg;
-		this.msgColor = c;
-		this.alpha = 255.0;
-		this.id = ++msgCounter;
+		this.msgColor  = c;
+		this.alpha     = 255.0;
+		this.id        = ++msgCounter;
 		this.completed = false;
 	}
 	
