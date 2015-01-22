@@ -10,6 +10,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.util.Random;
 
 import javax.sound.sampled.AudioInputStream;
@@ -88,7 +89,7 @@ public class SpaceObject
 			v_x = limit( v_x + a_x*dt, -maxSpeed, maxSpeed );
 			v_y = limit( v_y + a_y*dt, -maxSpeed, maxSpeed );
 		}
-
+	
 		// Friction affects linear motion (and is directly proportional to the speed)
 		if( a_x == 0 )
 			v_x -= thrustFriction*v_x*dt;
@@ -443,14 +444,14 @@ public class SpaceObject
 		g2d.drawImage( getImg(), transf, null );
 		
 		// Draw image rectangle
-		g.setColor( Color.GRAY );
-		g.drawRect( (int)pos_x, (int)pos_y, (int)getImgWidth(), (int)getImgHeight() );
-		
+		//g.setColor( Color.GRAY );
+		//g2d.draw( new Rectangle2D.Double(pos_x, pos_y, getImgWidth(), getImgHeight()) );
+
 		// Restore original transform matrix
 		g2d.setTransform( savedTransform );
 		
 		//Draw collision boundary (does not rotate with object, so it has to be drawn either before or after transform)
-		collisionBoundary.drawCollisionBoundary( g );	
+		//collisionBoundary.drawCollisionBoundary( g );	
 	}
 	
 	public void explode( boolean shockwave )

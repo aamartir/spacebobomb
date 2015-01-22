@@ -25,6 +25,7 @@ import java.util.ArrayList;
 
 import com.ship.effects.Shockwave;
 import com.space.Asteroid;
+import com.space.StarField;
 import com.weapons.Weapon;
 
 public class Game extends JFrame //implements ActionListener, MouseListener
@@ -56,6 +57,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	public  static PlayerShip playerShip;
 	private static SpaceCamera camera;
 	private static MiniMap miniMap;
+	private static StarField starField;
 	private static ArrayList<EnemyShip> enemies;
 	private static ArrayList<Asteroid> asteroids;
 
@@ -124,7 +126,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		camera = new SpaceCamera( playerShip.getPosX(), playerShip.getPosY(), screenWidth, screenHeight, playerShip );
 		
 		// Initialize minimap
-		miniMap = new MiniMap( screenWidth, screenHeight, 100, 200 );
+		miniMap = new MiniMap( screenWidth, screenHeight, 100, 255 );
+		
+		// Initialize starField
+		starField = new StarField( 1000, -screenWidth, -screenHeight, 2*screenWidth, 2*screenHeight );
 		
 		// Start logic and rendering threads
 		inGame = true; // Has to be called before start of threads.
@@ -203,6 +208,13 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		// 3. Move accordingly on next iteration
 		// ...
 		
+		// Update starField based on player's velocity
+		if( Math.abs(playerShip.getVelocityX()) > 0 || 
+		    Math.abs(playerShip.getVelocityY()) > 0 )
+		{
+			starField.moveStarField( -playerShip.getVelocityX(), -playerShip.getVelocityY() );
+		}
+		
 		// Last. Move Camera to follow its target
 		camera.updatePosition();
 	}
@@ -245,7 +257,10 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 						
 			// The minimap is the last thing to draw
 			miniMap.drawMiniMap( graphics );
-						
+					
+			// Draw starfield
+			starField.drawStarField( graphics );
+			
 			// Clear statistical variables
 			weaponsRendered = 0;
 			spaceShipsRendered = 0;
@@ -552,6 +567,11 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			return true;
 		else
 			return false;
+	}
+	
+	public static StarField getStarField()
+	{
+		return starField;
 	}
 	
 	// Return all enemies for now (Need only to return objects within viewable area)

@@ -1,105 +1,77 @@
 package com.space;
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Random;
 
+import spaceGame.Game;
+
 public class StarField
 {
-	public final double STAR_MAX_VEL = 0.4;
-	public final double STAR_MAX_RAD = 5;
+	public static final double MAX_DISTANCE  = 5.0;
+	public static final double STAR_MAX_SIZE = 4.0;
 	
-	private ArrayList<FarStar> starArr;
-	private int MAX_STARS;
-	private int WIDTH;
-	private int HEIGHT;
+	private static ArrayList<Star> starArr;
+	private static Random randomGenerator;
+	private static int maxStarsInView;
 	
-	FarStar thisStar;
-	Random randGenerator;
-	
-	public StarField(int num, int W, int H, Random randGenerator)
+	public StarField( int maxStars, int minX, int minY, int width, int height )
 	{
-		this.randGenerator = randGenerator;
-		starArr = new ArrayList<FarStar>();
-		MAX_STARS = num;
-		WIDTH = W;
-		HEIGHT = H;
-		
-		int x;
-		int y;
-		for(int i = 0; i < MAX_STARS; i++)
-		{
-			x = randGenerator.nextInt(W);
-			y = randGenerator.nextInt(H);
-			
-			createAndAddRandomStar(x, y);
-		}
-	}
-	
-	public void addStar(FarStar star)
-	{
-		starArr.add(star);
-	}
-	
-	public FarStar addStar(String name, int x, int y, double vel, double rad, Color c)
-	{
-		FarStar star = new FarStar(name, x, y, vel, rad, c);
-		addStar(star);
-		
-		return star;
-	}
-	
-	// Randomly chooses velocity and radius
-	public FarStar createAndAddRandomStar(int x, int y)
-	{
-		double vel = (STAR_MAX_VEL - 0.1)*randGenerator.nextDouble() + 0.1;
-		double rad = (STAR_MAX_RAD - 0.2)*randGenerator.nextDouble() + 0.2;
-	
-		int gray = (int) randGenerator.nextInt(200) + 55;
-		
-		FarStar star = new FarStar("Unknown", x, y, vel, rad, new Color(gray, gray, gray));
-		addStar(star);
-		
-		return star;
-	}
-	
-	public void moveAndDrawStarField(Graphics2D g2d)
-	{
-		int i = 0;
-		while(i < starArr.size())
-		{
-			thisStar = starArr.get(i);
-			
-			if(isWithinBoundaries(thisStar) && thisStar.isVisible())
-			{
-				thisStar.move();
-				thisStar.drawStar(g2d);
-			}
-			else
-			{
-				starArr.remove(i);
-				i--;
-			}
-			
-			i++;
-		}
-	}
-	
-	private boolean isWithinBoundaries(FarStar aStar)
-	{
-		int x = (int) aStar.getPosX();
-		int y = (int) aStar.getPosY();
+		starArr = new ArrayList<Star>();
+		randomGenerator = new Random();
+		maxStarsInView = maxStars;
 
-		if(x > 0 && x < WIDTH && y > 0 && y < HEIGHT)
+		for( int i = 0; i < maxStarsInView; i++ )
+		{
+			newStar( randomGenerator.nextDouble() * width + minX,
+					 randomGenerator.nextDouble() * height + minY );
+		}
+	}
+	
+	public void addStar( Star star )
+	{
+		starArr.add( star );
+	}
+	
+	public void newStar( double x, double y )
+	{
+		double distance = randomGenerator.nextDouble() * MAX_DISTANCE;
+		double size = STAR_MAX_SIZE * Math.exp(-(distance*distance));
+		
+		addStar( new Star(x, y, distance, size) );
+	}
+	
+	public void moveStarField( double velX, double velY )
+	{
+		for( Star star : starArr )
+		{
+			star.incrStarPosition( 5.0*velX*Math.exp(-star.getStarDistance()),
+					               5.0*velY*Math.exp(-star.getStarDistance()) );
+		}
+	}
+		
+	public void drawStarField( Graphics g )
+	{
+		for( Star star : starArr )
+		{
+			if( !isWithinBoundaries(star) )
+				continue;
+			
+			star.drawStar( (Graphics2D) g );
+		}
+	}
+	
+	private boolean isWithinBoundaries( Star aStar )
+	{
+		double x = aStar.getPosX();
+		double y = aStar.getPosY();
+
+		if( x > 0 && x < Game.screenWidth && y > 0 && y < Game.screenHeight )
 			return true;
 		
 		return false;
-	}
-	
-	public ArrayList<FarStar> getStarArr()
-	{
-		return starArr;
 	}
 }

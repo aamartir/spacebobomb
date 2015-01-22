@@ -2,6 +2,8 @@ package spaceGame;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 
 // CollisionBoundary is a rectangle
 public class CollisionBoundary 
@@ -30,7 +32,7 @@ public class CollisionBoundary
 	public void drawCollisionBoundary( Graphics g )
 	{
 		g.setColor( Color.YELLOW );
-		g.drawRect( (int)x, (int)y, (int)width, (int)height );
+		((Graphics2D)g).draw( new Rectangle2D.Double(x, y, width, height) );
 	}
 	
 	public boolean intersectsWith( CollisionBoundary other )
