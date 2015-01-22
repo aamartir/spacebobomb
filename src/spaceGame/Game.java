@@ -47,6 +47,11 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	private static int framesInCurrentTimeSlice;
 	private static int framesInLastTimeSlice;
 	
+	// Debug Statistics
+	private int spaceShipsRendered;
+	private int asteroidsRendered;
+	private int weaponsRendered;
+	
 	// Space objects
 	public  static PlayerShip playerShip;
 	private static SpaceCamera camera;
@@ -230,12 +235,22 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			updateFPS();
 			drawFPS( graphics, getLastFPS() );
 			
+			// Draw statistical variables
+			drawScreenMessage( graphics, "Spaceships rendered: " + spaceShipsRendered, 14, 20, 60, Color.YELLOW );
+			drawScreenMessage( graphics, "Asteroids rendered: "  + asteroidsRendered,  14, 20, 80, Color.YELLOW );
+			drawScreenMessage( graphics, "Weapons rendered: "    + weaponsRendered,    14, 20, 100, Color.YELLOW );
+			
 			// Draw msg "Escape to exit game"
-			drawScreenMessage( graphics, "Press Escape key to exit game", 14, 20, 60, Color.YELLOW );
+			drawScreenMessage( graphics, "Press Escape key to exit game", 14, 20, 120, Color.YELLOW );
 						
 			// The minimap is the last thing to draw
 			miniMap.drawMiniMap( graphics );
 						
+			// Clear statistical variables
+			weaponsRendered = 0;
+			spaceShipsRendered = 0;
+			asteroidsRendered = 0;
+			
 			// Translate screen so that player is always in the center (This should be done before all objects are drawn, so that
 			// everything is translated properly).
 			//((Graphics2D)graphics).translate( -playerShip.getPosX() + getWidth()/2.0, -playerShip.getPosY() + getHeight()/2.0 );
@@ -244,6 +259,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			
 			// Draw our little spaceship friend
 			playerShip.drawSpaceShip( graphics );
+			spaceShipsRendered++;
 			
 			// Draw weapons fired of player ship
 			for( Weapon weapon : playerShip.getWeaponsFired() )
@@ -253,6 +269,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
                         					 camera.getViewportMaxX(), camera.getViewportMaxY()) &&
                     !weapon.isDestroyed() )
 				{
+					weaponsRendered++;
 					weapon.drawSpaceObject( graphics );
 				}
 			}
@@ -263,6 +280,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 				if( ship.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
 	                                      camera.getViewportMaxX(), camera.getViewportMaxY()) )
 				{
+					spaceShipsRendered++;
 					ship.drawSpaceShip( graphics );
 				}
 				
@@ -273,6 +291,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
                             					 camera.getViewportMaxX(), camera.getViewportMaxY()) && 
                         !weapon.isDestroyed() )
         			{
+						weaponsRendered++;
 						weapon.drawSpaceObject( graphics );
                     }
 				}
@@ -285,6 +304,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 						                      camera.getViewportMaxX(), camera.getViewportMaxY()) &&
 				    asteroid.isVisible() )
 				{
+					asteroidsRendered++;
 					asteroid.drawAsteroid( graphics );
 				}
 			}
@@ -540,8 +560,18 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		return enemies;
 	}
 	
+	public static ArrayList<EnemyShip> getAllEnemies()
+	{
+		return enemies;
+	}
+	
 	// Return all asteroids for now (Need only to return objects within viewable area)
 	public static ArrayList<Asteroid> getAsteroidsWithinViewport()
+	{
+		return asteroids;
+	}
+	
+	public static ArrayList<Asteroid> getAllAsteroids()
 	{
 		return asteroids;
 	}

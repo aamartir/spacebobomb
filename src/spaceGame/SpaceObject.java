@@ -39,6 +39,7 @@ public class SpaceObject
 	private double rotationDegPerSec; // The rate of change of rotationAngle
 	
 	private ImageIcon img;
+	private CollisionBoundary collisionBoundary;
 	private AffineTransform transf;
 	private static AffineTransform savedTransform;
 	private boolean visible;
@@ -62,6 +63,7 @@ public class SpaceObject
 		transf = new AffineTransform();
 		destroyed = false;
 		visible = true;
+		collisionBoundary = new CollisionBoundary( x, y, getImgWidth(), getImgHeight() );
 	}
 	
 	public SpaceObject( double x, double y, 
@@ -109,6 +111,13 @@ public class SpaceObject
 		
 		// update angle with angular rotation
 		angle = checkAngleBoundaries( angle + rotationDegPerSec * dt );
+		
+		// Update collisionBoundary position ( Not very good )
+		double w = Math.abs(getImgWidth()*Math.cos(Math.toRadians(angle))) + Math.abs(getImgHeight()*Math.sin(Math.toRadians(angle)));
+		double h = Math.abs(getImgHeight()*Math.cos(Math.toRadians(angle))) + Math.abs(getImgWidth()*Math.sin(Math.toRadians(angle)));
+		collisionBoundary.setPositionAndDimensions( pos_x + getImgWidth()/2.0 - w/2.0, 
+				                                    pos_y + getImgHeight()/2.0 - h/2.0, 
+				                                    w, h );
 	}
 	
 	public double limit( double val, double lowerLimit, double upperLimit )
@@ -430,14 +439,18 @@ public class SpaceObject
 		transf.setToIdentity();
 		transf.translate( getPosX(), getPosY() );
 		
+		// Draw Image
 		g2d.drawImage( getImg(), transf, null );
 		
-		// Only for debugging purposes
-		//g2d.setColor( Color.WHITE );
-		//g2d.drawRect( (int)getPosX(), (int)getPosY(), getImgWidth(), getImgHeight() );
+		// Draw image rectangle
+		g.setColor( Color.GRAY );
+		g.drawRect( (int)pos_x, (int)pos_y, (int)getImgWidth(), (int)getImgHeight() );
 		
 		// Restore original transform matrix
 		g2d.setTransform( savedTransform );
+		
+		//Draw collision boundary (does not rotate with object, so it has to be drawn either before or after transform)
+		collisionBoundary.drawCollisionBoundary( g );	
 	}
 	
 	public void explode( boolean shockwave )
