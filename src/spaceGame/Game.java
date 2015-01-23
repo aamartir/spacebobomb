@@ -16,6 +16,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 //import java.awt.event.ActionListener;
 //import java.awt.event.MouseListener;
@@ -28,7 +30,7 @@ import com.space.Asteroid;
 import com.space.StarField;
 import com.weapons.Weapon;
 
-public class Game extends JFrame //implements ActionListener, MouseListener
+public class Game extends JFrame implements MouseListener //implements ActionListener
 {
 	private static final long serialVersionUID = 1L;
 	public static int screenWidth;
@@ -56,6 +58,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 	// Space objects
 	public  static PlayerShip playerShip;
 	private static SpaceCamera camera;
+	private static SpaceObjectSelector selector;
 	private static MiniMap miniMap;
 	private static StarField starField;
 	private static ArrayList<EnemyShip> enemies;
@@ -99,7 +102,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 
 		// Add keyListener
 		addKeyListener( new TAdapter() );
-		//addMouseListener(this);
+		addMouseListener( this );
 
 		// init game
 		initGame();
@@ -122,14 +125,21 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 		initSpaceShips();
 		initAsteroids();
 		
-		// Initialize camera
-		camera = new SpaceCamera( playerShip.getPosX(), playerShip.getPosY(), screenWidth, screenHeight, playerShip );
+		// Initialize camera (Point to the center of the object)
+		camera = new SpaceCamera( playerShip.getPosX() + playerShip.getImgWidth()/2.0, 
+				                  playerShip.getPosY() + playerShip.getImgHeight()/2.0, 
+				                  screenWidth, 
+				                  screenHeight, 
+				                  playerShip );
+		
+		// Init object selector
+		selector = new SpaceObjectSelector();
 		
 		// Initialize minimap
 		miniMap = new MiniMap( screenWidth, screenHeight, 100, 255 );
 		
 		// Initialize starField
-		starField = new StarField( 1000, -screenWidth, -screenHeight, 2*screenWidth, 2*screenHeight );
+		starField = new StarField( 10000, -screenWidth, -screenHeight, 2*screenWidth, 2*screenHeight );
 		
 		// Start logic and rendering threads
 		inGame = true; // Has to be called before start of threads.
@@ -260,7 +270,7 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 					
 			// Draw starfield
 			starField.drawStarField( graphics );
-			
+						
 			// Clear statistical variables
 			weaponsRendered = 0;
 			spaceShipsRendered = 0;
@@ -328,6 +338,12 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			Shockwave.drawShockwaves( graphics );
 
 			// Draw other stuff
+			// TODO
+			
+			// Draw mouse selector box
+			if( selector.isVisible() )
+				selector.drawSelector( (Graphics2D) graphics );
+						
 		}
 		finally
 		{
@@ -723,6 +739,38 @@ public class Game extends JFrame //implements ActionListener, MouseListener
 			game.dispatchEvent( new WindowEvent(game, WindowEvent.WINDOW_CLOSING) );
 			System.exit( 0 );
 		}
+	}
+	
+	public void mouseClicked( MouseEvent e )
+	{
+		
+	}
+	
+	public void mouseReleased( MouseEvent e )
+	{
+		selector.setVisible( true );
+		selector.setCoordinates( e.getX() - SpaceObjectSelector.SELECTOR_SIZE/2.0 + camera.getViewportMinX() + playerShip.getImgWidth()/2.0, 
+				                 e.getY() - SpaceObjectSelector.SELECTOR_SIZE/2.0 + camera.getViewportMinY() + playerShip.getImgHeight()/2.0);
+		
+		//System.out.println( "(" + e.getY() + "," + e.getX() + ")." + camera.getViewportMinY() + ". playerY: " + playerShip.getPosY() );
+		
+		// Select something on the screen
+		// TODO
+	}
+	
+	public void mouseEntered( MouseEvent e )
+	{
+		
+	}
+	
+	public void mousePressed( MouseEvent e )
+	{
+		
+	}
+	
+	public void mouseExited( MouseEvent e )
+	{
+		
 	}
 	
 	public class TAdapter extends KeyAdapter

@@ -29,16 +29,18 @@ public class CollisionBoundary
 		height = newH;
 	}
 	
-	public void drawCollisionBoundary( Graphics g )
+	public void drawCollisionBoundary( Graphics2D g2d )
 	{
-		g.setColor( Color.YELLOW );
-		((Graphics2D)g).draw( new Rectangle2D.Double(x, y, width, height) );
+		g2d.setColor( Color.YELLOW );
+		g2d.draw( new Rectangle2D.Double(x, y, width, height) );
 	}
 	
 	public boolean intersectsWith( CollisionBoundary other )
 	{
-		if( this.x + this.width >= other.x && this.x + this.width <= other.x + other.width &&
-	        this.y + this.height >= other.y && this.y + this.height <= other.y + other.height )
+		if( (this.x + this.width >= other.x && this.x + this.width <= other.x + other.width ||
+			 this.x >= other.x && this.x <= other.x + other.width ) &&
+	        (this.y + this.height >= other.y && this.y + this.height <= other.y + other.height ||
+	         this.y >= other.y && this.y <= other.y + other.height) )
 		{
 			return true;
 		}

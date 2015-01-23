@@ -7,8 +7,8 @@ public class SpaceCamera
 	private int viewportWidth;
 	private int viewportHeight;
 	
-	private double posX;
-	private double posY;
+	private double posX; // center of the object
+	private double posY; // center of the object
 	
 	private SpaceObject targetToFollow;
 	
@@ -53,8 +53,8 @@ public class SpaceCamera
 	{
 		if( targetToFollow != null )
 		{
-			posX = targetToFollow.getPosX() + targetToFollow.getImgWidth()/2.0;
-			posY = targetToFollow.getPosY() + targetToFollow.getImgHeight()/2.0;
+			posX = 0.9*posX + 0.1*(targetToFollow.getPosX() + targetToFollow.getImgWidth()/2.0);
+			posY = 0.9*posY + 0.1*(targetToFollow.getPosY() + targetToFollow.getImgHeight()/2.0);
 		}
 	}
 	
@@ -80,22 +80,22 @@ public class SpaceCamera
 	
 	public double getViewportMinX()
 	{
-		return posX - viewportWidth/2.0;
+		return posX - targetToFollow.getImgWidth()/2.0 - viewportWidth/2.0;
 	}
 	
 	public double getViewportMinY()
 	{
-		return posY - viewportHeight/2.0;
+		return posY - targetToFollow.getImgHeight()/2.0 - viewportHeight/2.0;
 	}
 	
 	public double getViewportMaxX()
 	{
-		return posX + viewportWidth/2.0;
+		return posX - targetToFollow.getImgWidth()/2.0 + viewportWidth/2.0;
 	}
 	
 	public double getViewportMaxY()
 	{
-		return posY + viewportHeight/2.0;
+		return posY - targetToFollow.getImgHeight()/2.0 + viewportHeight/2.0;
 	}
 	
 	public void followSpaceObject( SpaceObject obj )

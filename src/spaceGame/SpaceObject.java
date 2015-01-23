@@ -228,6 +228,11 @@ public class SpaceObject
 		return false;
 	}
 	
+	public CollisionBoundary getCollisionBoundary()
+	{
+		return collisionBoundary;
+	}
+	
 	public boolean containsPoint(Point p)
 	{
 		return (new Rectangle(p.x - 12, p.y - 33, 20, 20).intersects(getBounds()));
@@ -451,7 +456,7 @@ public class SpaceObject
 		g2d.setTransform( savedTransform );
 		
 		//Draw collision boundary (does not rotate with object, so it has to be drawn either before or after transform)
-		//collisionBoundary.drawCollisionBoundary( g );	
+		collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
 	}
 	
 	public void explode( boolean shockwave )

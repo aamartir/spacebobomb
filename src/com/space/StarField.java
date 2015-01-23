@@ -12,7 +12,8 @@ import spaceGame.Game;
 public class StarField
 {
 	public static final double MAX_DISTANCE  = 5.0;
-	public static final double STAR_MAX_SIZE = 4.0;
+	public static final double STAR_MIN_SIZE = 0.5;
+	public static final double STAR_MAX_SIZE = 1.5;
 	
 	private static ArrayList<Star> starArr;
 	private static Random randomGenerator;
@@ -39,7 +40,7 @@ public class StarField
 	public void newStar( double x, double y )
 	{
 		double distance = randomGenerator.nextDouble() * MAX_DISTANCE;
-		double size = STAR_MAX_SIZE * Math.exp(-(distance*distance));
+		double size = (STAR_MAX_SIZE-STAR_MIN_SIZE) * Math.exp(-(distance*distance)) + STAR_MIN_SIZE;
 		
 		addStar( new Star(x, y, distance, size) );
 	}
