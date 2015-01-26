@@ -264,13 +264,13 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			
 			// Draw msg "Escape to exit game"
 			drawScreenMessage( graphics, "Press Escape key to exit game", 14, 20, 120, Color.YELLOW );
-						
-			// The minimap is the last thing to draw
-			miniMap.drawMiniMap( graphics );
-					
+			
 			// Draw starfield
 			starField.drawStarField( graphics );
 						
+			// The minimap is the last thing to draw
+			miniMap.drawMiniMap( graphics );
+								
 			// Clear statistical variables
 			weaponsRendered = 0;
 			spaceShipsRendered = 0;

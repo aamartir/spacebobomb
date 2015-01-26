@@ -456,7 +456,7 @@ public class SpaceObject
 		g2d.setTransform( savedTransform );
 		
 		//Draw collision boundary (does not rotate with object, so it has to be drawn either before or after transform)
-		collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
+		//collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
 	}
 	
 	public void explode( boolean shockwave )
