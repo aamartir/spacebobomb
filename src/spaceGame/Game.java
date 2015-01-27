@@ -26,6 +26,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
 import com.ship.effects.Shockwave;
+import com.ship.effects.RotatingTrianglesTarget;
 import com.space.Asteroid;
 import com.space.StarField;
 import com.weapons.Weapon;
@@ -50,7 +51,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	private static int framesInCurrentTimeSlice;
 	private static int framesInLastTimeSlice;
 	
-	// Debug Statistics
+	// Debug Statistics (rendering)
 	private int spaceShipsRendered;
 	private int asteroidsRendered;
 	private int weaponsRendered;
@@ -64,11 +65,16 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	private static ArrayList<EnemyShip> enemies;
 	private static ArrayList<Asteroid> asteroids;
 
+	// Other game variables
+	public static Game game;
 	private static boolean inGame;
+	private static SpaceObject objSelected;
+	
+	// Game Threads
 	private static Thread logicThread;
 	private static Thread renderThread;
 	
-	public static Game game;
+	// Graphics variables
 	private BufferStrategy bufferStrategy;
 	private RenderingHints renderHints;
 	private Graphics graphics;
@@ -144,8 +150,14 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Start logic and rendering threads
 		inGame = true; // Has to be called before start of threads.
 		
+		// Instantiate threads (render and logic)
 		renderThread = new Thread( new GameRender() );
 		logicThread = new Thread( new GameLogic() );
+		
+		// Thread priority
+		logicThread.setPriority( Thread.MAX_PRIORITY );
+		//renderThread.setPriority( Thread.MAX_PRIORITY );
+		
 		renderThread.start();
 		logicThread.start();
 
@@ -212,8 +224,9 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Update shockwave and explosions
 		Shockwave.updateShockwaves( dt );
 		
-		// 2. Check collisions
-		// ...
+		// 2. Check collisions (Tile based)
+		// For every visible tile
+		// Get all the objects, and see if they are colliding with each other.
 		
 		// 3. Move accordingly on next iteration
 		// ...
@@ -341,8 +354,10 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			// TODO
 			
 			// Draw mouse selector box
+			/*
 			if( selector.isVisible() )
 				selector.drawSelector( (Graphics2D) graphics );
+			*/
 						
 		}
 		finally
@@ -748,11 +763,56 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	
 	public void mouseReleased( MouseEvent e )
 	{
-		selector.setVisible( true );
+		//selector.setVisible( true );
 		selector.setCoordinates( e.getX() - SpaceObjectSelector.SELECTOR_SIZE/2.0 + camera.getViewportMinX() + playerShip.getImgWidth()/2.0, 
 				                 e.getY() - SpaceObjectSelector.SELECTOR_SIZE/2.0 + camera.getViewportMinY() + playerShip.getImgHeight()/2.0);
 		
 		//System.out.println( "(" + e.getY() + "," + e.getX() + ")." + camera.getViewportMinY() + ". playerY: " + playerShip.getPosY() );
+		
+		// Get the selected tile
+		// Within that tile, get all objects, and find which object is selected
+		
+		// ... 
+		
+		if( objSelected != null )
+		{
+			objSelected.unselect();
+			objSelected = null;
+		}
+		
+		for( SpaceShip aShip : enemies )
+		{
+			if( !aShip.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
+                                        camera.getViewportMaxX(), camera.getViewportMaxY()) )
+			{
+				continue;
+			}
+			
+			if( selector.isSelecting(aShip) )
+			{
+				objSelected = aShip;
+				aShip.select();
+			}
+		}
+			
+		// Select other objects
+		if( objSelected == null )
+		{
+			for( Asteroid asteroid : asteroids )
+			{
+				if( !asteroid.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
+                        					   camera.getViewportMaxX(), camera.getViewportMaxY()) )
+				{
+					continue;
+				}
+				
+				if( selector.isSelecting(asteroid) )
+				{
+					objSelected = asteroid;
+					asteroid.select();
+				}
+			}
+		}
 		
 		// Select something on the screen
 		// TODO
@@ -791,7 +851,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			else if( key == KeyEvent.VK_SPACE )
 				playerShip.fireMissile();
 			else if( key == KeyEvent.VK_K ) // This is to test different features
-				playerShip.addLife(10);
+				playerShip.decreaseLife(10);
 		}
 		
 		public void keyReleased(KeyEvent e)

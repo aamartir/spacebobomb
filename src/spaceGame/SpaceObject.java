@@ -20,8 +20,9 @@ import javax.swing.ImageIcon;
 
 import Mathematics.Vector2D;
 
+import com.ship.effects.DonutTarget;
 import com.ship.effects.Shockwave;
-import com.ship.effects.Target;
+import com.ship.effects.RotatingTrianglesTarget;
 
 public class SpaceObject 
 {
@@ -45,7 +46,8 @@ public class SpaceObject
 	private static AffineTransform savedTransform;
 	private boolean visible;
 	private boolean destroyed;
-
+	private boolean selected;
+	
 	public static final int NO_SPEED_LIMIT      = 0;
 	public static final int FRICTIONLESS_OBJECT = 0;
 	
@@ -64,6 +66,8 @@ public class SpaceObject
 		transf = new AffineTransform();
 		destroyed = false;
 		visible = true;
+		selected = false;
+		
 		collisionBoundary = new CollisionBoundary( x, y, getImgWidth(), getImgHeight() );
 	}
 	
@@ -89,7 +93,7 @@ public class SpaceObject
 			v_x = limit( v_x + a_x*dt, -maxSpeed, maxSpeed );
 			v_y = limit( v_y + a_y*dt, -maxSpeed, maxSpeed );
 		}
-	
+
 		// Friction affects linear motion (and is directly proportional to the speed)
 		if( a_x == 0 )
 			v_x -= thrustFriction*v_x*dt;
@@ -451,12 +455,45 @@ public class SpaceObject
 		// Draw image rectangle
 		//g.setColor( Color.GRAY );
 		//g2d.draw( new Rectangle2D.Double(pos_x, pos_y, getImgWidth(), getImgHeight()) );
-
+		
 		// Restore original transform matrix
 		g2d.setTransform( savedTransform );
 		
+		// Draw everything else that does not rotate with the object
+		// ...
+		
+		// Draw target if object has been selected
+		if( selected )
+		{
+			//rotatingTrianglesTarget.drawTarget( g2d, savedTransform, getPosX() + getImgWidth()/2.0, getPosY() + getImgHeight()/2.0 );
+			DonutTarget.draw( g2d, 
+					          getPosX() + getImgWidth()/2.0, 
+					          getPosY() + getImgHeight()/2.0, 
+					          Math.max( 0.75*getImgWidth(), 0.75*getImgHeight() ), 
+					          8.0, 
+					          Color.BLUE );
+		}
+		
 		//Draw collision boundary (does not rotate with object, so it has to be drawn either before or after transform)
-		//collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
+	    //collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
+	}
+	
+	public void select()
+	{
+		//rotatingTrianglesTarget.setTargetImage( targetType );
+		//rotatingTrianglesTarget.runAnimation();
+		selected = true;
+	}
+	
+	public void unselect()
+	{
+		//rotatingTrianglesTarget.stopAnimation();
+		selected = false;
+	}
+	
+	public boolean isSelected()
+	{
+		return selected;
 	}
 	
 	public void explode( boolean shockwave )
