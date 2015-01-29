@@ -467,11 +467,11 @@ public class SpaceObject
 		{
 			//rotatingTrianglesTarget.drawTarget( g2d, savedTransform, getPosX() + getImgWidth()/2.0, getPosY() + getImgHeight()/2.0 );
 			DonutTarget.draw( g2d, 
-					          getPosX() + getImgWidth()/2.0, 
-					          getPosY() + getImgHeight()/2.0, 
-					          Math.max( 0.75*getImgWidth(), 0.75*getImgHeight() ), 
-					          8.0, 
-					          Color.BLUE );
+					  getPosX() + getImgWidth()/2.0, 
+					  getPosY() + getImgHeight()/2.0, 
+					  0.75*Math.sqrt(getImgWidth()*getImgWidth() + getImgHeight()*getImgHeight()),  
+					  6.0, 
+					  Color.BLUE );
 		}
 		
 		//Draw collision boundary (does not rotate with object, so it has to be drawn either before or after transform)
