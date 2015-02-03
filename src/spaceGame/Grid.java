@@ -1,38 +1,89 @@
 package spaceGame;
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 
 public class Grid 
 {
-	private static ArrayList<Quadrant> grid;
-	private static Quadrant thisQuad;
+	private ArrayList<Quadrant> grid;
+
+	private int screenWidth;
+	private int screenHeight;
 	
-	public static int xDiv;
-	public static int yDiv;
-	
-	public Grid(int xDiv, int yDiv)
+	private int n;
+	private double dx;
+	private double dy;
+
+	public Grid( int n, int screenWidth, int screenHeight )
 	{
 		grid = new ArrayList<Quadrant>();
 		
-		this.xDiv = xDiv;
-		this.yDiv = yDiv;
+		this.screenWidth = screenWidth;
+		this.screenHeight = screenHeight;
+		this.n = n;
+		this.dx = screenWidth/n;
+		this.dy = screenHeight/n;
 		
 		initGrid();
 	}
 	
 	public void initGrid()
 	{
-		for(int y = 0; y < yDiv; y++)
+		int quadCounter = 0;
+		
+		for( int row = 0; row < n; row++ )
 		{
-			for(int x = 0; x < xDiv; x++)
+			for( int col = 0; col < n; col++ )
 			{
-				grid.add(new Quadrant(x*Board.WIDTH/xDiv, y*Board.HEIGHT/yDiv, xDiv, yDiv));
+				grid.add( new Quadrant(this, quadCounter++, dx*col, dy*row, dx, dy) );
 			}
 		}
 	}
 	
+	public void putSpaceObject( SpaceObject obj )
+	{
+		if( obj != null )
+		{
+			//System.out.println( "x: " + obj.getPosX() + ". y: " + obj.getPosY() + ". id: " + getQuadrantIDPerPoint(obj.getPosX(), obj.getPosY()) );
+			
+			// Add object to the right quad (Take the center of the object as the point of reference)
+			int quadID = getQuadrantIDPerPoint( obj.getPosX() + obj.getImgWidth()/2.0, 
+					                            obj.getPosY() + obj.getImgHeight()/2.0 );
+			
+			if( quadID >= 0 && quadID < grid.size() )
+			{
+				grid.get( quadID ).addObjectToQuadrant( obj ); 
+			}
+			else
+			{
+				
+			}
+		}
+	}
+	
+	public void removeSpaceObject( SpaceObject obj )
+	{
+		if( obj != null )
+		{
+			// TODO 
+		}
+	}
+	
+	// Return -1 if outside of bounds of grid
+	public int getQuadrantIDPerPoint( double x, double y )
+	{
+		if( x < 0 || x > screenWidth ||
+		    y < 0 || y > screenHeight )
+		{
+			return -1;
+		}
+		
+		return ( (int)(x/dx) + n*(int)(y/dy) );
+	}
+	
+	/*
 	public static void assignObjectToQuadrant(int x, int y, SpaceObject obj)
 	{
 		int hash = calculateQuadrantHash(x, y, xDiv, yDiv);
@@ -63,19 +114,18 @@ public class Grid
 		
 		//return thisQuad;
 	}
+	*/
 	
+	/*
 	public static int calculateQuadrantHash(int x, int y, int xDiv, int yDiv)
 	{
 		return (int) (Math.floor((x+1)*xDiv/Board.WIDTH) + Math.floor((y+1)*yDiv/Board.HEIGHT)*yDiv);
 	}
+	*/
 	
-	public static void draw(Graphics2D g2d)
+	public void drawGrid( Graphics g )
 	{
-		g2d.setColor(Color.gray);
-		
-		for(Quadrant quad : grid)
-		{
-			quad.draw(g2d);
-		}
+		for( Quadrant quad : grid )
+			quad.draw( (Graphics2D) g );
 	}
 }

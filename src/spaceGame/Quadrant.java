@@ -1,7 +1,10 @@
 package spaceGame;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /*
  * A objectsInQuadrant is a segment, or SubArea of Grid. This will be useful
@@ -10,73 +13,99 @@ import java.util.ArrayList;
  */
 public class Quadrant 
 {
+	private Grid parentGrid;
+	public HashMap<Integer, SpaceObject> objectsInQuadrant;
+	public int objCounter = 0;
+	public int quadrantId; // Block Identifier
+	
 	// Dimensions
-	private int x;
-	private int y;
+	private double x0;
+	private double y0;
+	private double w;
+	private double h;
 	
-	// Keeps track of objects in this Quadrant (Faster object removal).
-	private int objCounter = 0;
-
-	ArrayList<SpaceObject> objectsInQuadrant; // Array of objects that belong to that Quadrant
-	
-	private int hashId; // Block Identifier
-	
-	public Quadrant(int x, int y, int xDiv, int yDiv)
+	public Quadrant( Grid parentGrid, int id, double x0, double y0, double w, double h )
 	{
-		this.x = x;
-		this.y = y;
-		//this.w = w;
-		//this.h = h;
+		this.parentGrid = parentGrid;
 		
-		objectsInQuadrant = new ArrayList<SpaceObject>();
+		this.x0 = x0;
+		this.y0 = y0;
+		this.w = w;
+		this.h = h;
 		
-		hashId = Grid.calculateQuadrantHash(x, y, xDiv, yDiv);
+		objectsInQuadrant = new HashMap<Integer, SpaceObject>();
+		quadrantId = id;
 		
-		System.out.println("New Quadrant\nx = " + x + "\ny = " + y + "\nhash = " + hashId);
+		//System.out.println("New Quadrant\nx = " + x0 + "\ny = " + y0 + "\nhash = " + quadrantId);
 	}
 	
-	public int getQuadrantHash()
+	public int getQuadrantID()
 	{
-		return hashId;
+		return quadrantId;
 	}
 	
-	public ArrayList<SpaceObject> getObjectsInQuadrant()
+	public SpaceObject[] getObjectsInQuadrant()
 	{
-		return objectsInQuadrant;
+		return (SpaceObject[]) objectsInQuadrant.entrySet().toArray();
 	}
 
 	public int getNumOfObjectsInQuadrant()
 	{
-		return objectsInQuadrant.size();
+		return objectsInQuadrant.entrySet().size();
 	}
 	
-	public synchronized void addObjectToQuadrant(SpaceObject obj)
+	public boolean hasSpaceObject( SpaceObject obj )
 	{
-		if(obj.getQuadrant() != this) // Only add if different
+		// Object ID is the KEY in <KEY, VALUE> HashMap entry set
+		if( objectsInQuadrant.containsKey( obj.getObjectID()) )
+			return true;
+		
+		return false;
+	}
+	
+	public synchronized boolean addObjectToQuadrant( SpaceObject obj )
+	{
+		if( !this.hasSpaceObject(obj) ) // Only add if different
 		{
-			objectsInQuadrant.add(obj);
-			obj.assignQuadrant(this);
+			objectsInQuadrant.put( obj.getObjectID(), obj );
+			//obj.assignQuadrant(this);
+			
+			System.out.println( "New object( obj" + obj.getObjectID() + 
+					            " ) at position ( " + obj.getPosX() + ", " + obj.getPosY() + 
+					            " ) added to quadrant " + quadrantId );
+			return true;
 		}
+		
+		return false;
 	}
 	
-	public synchronized void removeObjectFromQuadrant(SpaceObject obj)
+	public synchronized boolean removeObjectFromQuadrant( SpaceObject obj )
 	{
-		try
+		if( this.hasSpaceObject(obj) )
 		{
 			//System.out.println("Removing object (hash " + obj.getGridID() + " from Quadrant " + getQuadrantHash());
-			objectsInQuadrant.remove(obj);
+			objectsInQuadrant.remove( obj.getObjectID() );
+			return true;
 		}
-		catch(Exception e)
-		{
-			System.out.println("Error removing object(hash " + obj.getGridID() + ") from Quadrant " + getQuadrantHash() + ". Error: '" + e.toString() + ".'");
-		}
+
+		return false;
 	}
 	
-	public void draw(Graphics2D g2d)
+	public synchronized boolean swapObjectToQuadrant( Quadrant toQuadrant, SpaceObject obj )
 	{
-		g2d.drawRect(x, y, Board.WIDTH/Grid.xDiv, Board.HEIGHT/Grid.yDiv);
-		g2d.drawString("Hash: " + getQuadrantHash(), x + Board.WIDTH/(10*Grid.xDiv), y + Board.HEIGHT/(10*Grid.yDiv));
-		g2d.drawString("Objs: " + getNumOfObjectsInQuadrant(), x + Board.WIDTH/(10*Grid.xDiv), y + Board.HEIGHT/(10*Grid.yDiv) + 20);
+		if( removeObjectFromQuadrant(obj) )
+			if( toQuadrant.addObjectToQuadrant(obj) )
+					return true;
+		
+		return false;
+	}
+	
+	public void draw( Graphics2D g2d )
+	{
+		g2d.setColor( Color.GRAY );
+		g2d.draw( new Rectangle2D.Double( x0, y0, w, h) );
+		//g2d.drawString("Hash: " + getQuadrantHash(), x0 + );
+		//g2d.drawString("Objs: " + getNumOfObjectsInQuadrant(), x + Board.WIDTH/(10*Grid.xDiv), y + Board.HEIGHT/(10*Grid.yDiv) + 20);
 		
 	}
 }
