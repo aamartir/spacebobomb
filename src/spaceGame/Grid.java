@@ -15,6 +15,7 @@ public class Grid
 	private int n;
 	private double dx;
 	private double dy;
+	private int size;
 
 	public Grid( int n, int screenWidth, int screenHeight )
 	{
@@ -23,6 +24,7 @@ public class Grid
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		this.n = n;
+		this.size = n*n;
 		this.dx = screenWidth/n;
 		this.dy = screenHeight/n;
 		
@@ -42,32 +44,99 @@ public class Grid
 		}
 	}
 	
-	public void putSpaceObject( SpaceObject obj )
+	public int size()
+	{
+		return size;
+	}
+	
+	public Quadrant get( int i )
+	{
+		if( size > 0 && i >= 0 && i < size )
+			return grid.get(i);
+		
+		return null;
+	}
+	
+	public synchronized int getObjectsInGrid()
+	{
+		int count = 0;
+		for( Quadrant q : grid )
+			count += q.getNumOfObjectsInQuadrant();
+		
+		return count;
+	}
+	
+	/*
+	public synchronized void refresh()
+	{
+		
+	}
+	*/
+	
+	public synchronized void updateObjectGridQuadrant( SpaceObject obj )
+	{
+		if( obj != null )
+		{
+			Quadrant q = getQuadrantPerPoint( obj.getPosX(), obj.getPosY() );
+			
+			// Swap to different quadrant
+			swapObjectToQuadrant( obj.lastQuadrant, q, obj );
+		}
+	}
+	
+	public synchronized static void swapObjectToQuadrant( Quadrant fromQuadrant, Quadrant toQuadrant, SpaceObject obj )
+	{
+		if( fromQuadrant != null )
+		{
+			// Object is somewhere in the grid
+			fromQuadrant.swapObjectToQuadrant( toQuadrant, obj );
+		}
+		else
+		{
+			// Object is coming into the grid
+			addObjectToQuadrant( toQuadrant, obj );
+		}
+	}
+	
+	public synchronized static void addObjectToQuadrant( Quadrant toQuadrant, SpaceObject obj )
+	{
+		if( toQuadrant == null )
+			obj.lastQuadrant = null;
+		else
+			toQuadrant.addObjectToQuadrant( obj );
+	}
+	
+	public synchronized void putObjectInGrid( SpaceObject obj )
 	{
 		if( obj != null )
 		{
 			//System.out.println( "x: " + obj.getPosX() + ". y: " + obj.getPosY() + ". id: " + getQuadrantIDPerPoint(obj.getPosX(), obj.getPosY()) );
 			
 			// Add object to the right quad (Take the center of the object as the point of reference)
-			int quadID = getQuadrantIDPerPoint( obj.getPosX() + obj.getImgWidth()/2.0, 
-					                            obj.getPosY() + obj.getImgHeight()/2.0 );
+			int quadID = getQuadrantIDPerPoint( obj.getPosX(), 
+					                            obj.getPosY() );
 			
-			if( quadID >= 0 && quadID < grid.size() )
-			{
-				grid.get( quadID ).addObjectToQuadrant( obj ); 
-			}
-			else
-			{
-				
-			}
+			// Try to put object into its respective quadrant
+			putObjectInQuadrant( quadID, obj );
 		}
 	}
 	
-	public void removeSpaceObject( SpaceObject obj )
+	// TODO
+	public synchronized void removeObjectFromGrid( SpaceObject obj )
 	{
 		if( obj != null )
 		{
-			// TODO 
+			// REMOVE obj from every quadrant it is on
+			// TODO
+		}
+	}
+	
+	public synchronized void putObjectInQuadrant( int quadrantID, SpaceObject obj )
+	{
+		if( grid != null && obj != null &&
+			quadrantID > 0 && quadrantID < grid.size() )
+		{
+			grid.get( quadrantID ).addObjectToQuadrant( obj );
 		}
 	}
 	
@@ -83,46 +152,16 @@ public class Grid
 		return ( (int)(x/dx) + n*(int)(y/dy) );
 	}
 	
-	/*
-	public static void assignObjectToQuadrant(int x, int y, SpaceObject obj)
+	public Quadrant getQuadrantPerPoint( double x, double y )
 	{
-		int hash = calculateQuadrantHash(x, y, xDiv, yDiv);
+		int id = getQuadrantIDPerPoint( x, y );
 		
-		if(!Board.isWithinBounds(obj) || hash >= xDiv*yDiv || hash < 0)
-		{
-			if(obj.getQuadrant() != null)
-				obj.getQuadrant().removeObjectFromQuadrant(obj);
-		}
-		else
-		{			
-			if(obj.getQuadrant() != null)
-			{
-				if(hash != obj.getQuadrant().getQuadrantHash()) // Re-assign only if the new Quadrant isb  different than the old one
-				{
-					obj.getQuadrant().removeObjectFromQuadrant(obj);
+		if( id >= 0 && id < grid.size() )
+			return grid.get(id);
+		
+		return null;
+	}
 
-					thisQuad = grid.get(hash); // Get the new Quadrant
-					thisQuad.addObjectToQuadrant(obj); // Relate the object with its Quadrant (2-way, see function)
-				}
-			}
-			else
-			{
-				thisQuad = grid.get(hash);
-				thisQuad.addObjectToQuadrant(obj);
-			}
-		}
-		
-		//return thisQuad;
-	}
-	*/
-	
-	/*
-	public static int calculateQuadrantHash(int x, int y, int xDiv, int yDiv)
-	{
-		return (int) (Math.floor((x+1)*xDiv/Board.WIDTH) + Math.floor((y+1)*yDiv/Board.HEIGHT)*yDiv);
-	}
-	*/
-	
 	public void drawGrid( Graphics g )
 	{
 		for( Quadrant quad : grid )

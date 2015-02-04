@@ -44,17 +44,17 @@ public class Quadrant
 		return quadrantId;
 	}
 	
-	public SpaceObject[] getObjectsInQuadrant()
+	public synchronized Object[] getObjectsInQuadrant()
 	{
-		return (SpaceObject[]) objectsInQuadrant.entrySet().toArray();
+		return objectsInQuadrant.values().toArray();
 	}
 
-	public int getNumOfObjectsInQuadrant()
+	public synchronized int getNumOfObjectsInQuadrant()
 	{
-		return objectsInQuadrant.entrySet().size();
+		return objectsInQuadrant.size(); //.entrySet().size();
 	}
 	
-	public boolean hasSpaceObject( SpaceObject obj )
+	public synchronized boolean hasSpaceObject( SpaceObject obj )
 	{
 		// Object ID is the KEY in <KEY, VALUE> HashMap entry set
 		if( objectsInQuadrant.containsKey( obj.getObjectID()) )
@@ -68,11 +68,12 @@ public class Quadrant
 		if( !this.hasSpaceObject(obj) ) // Only add if different
 		{
 			objectsInQuadrant.put( obj.getObjectID(), obj );
-			//obj.assignQuadrant(this);
-			
-			System.out.println( "New object( obj" + obj.getObjectID() + 
-					            " ) at position ( " + obj.getPosX() + ", " + obj.getPosY() + 
-					            " ) added to quadrant " + quadrantId );
+			obj.lastQuadrant = this;
+			objCounter++;
+
+			//System.out.println( "New object( obj" + obj.getObjectID() + 
+			//		            " ) at position ( " + obj.getPosX() + ", " + obj.getPosY() + 
+			//		            " ) added to quadrant " + quadrantId );
 			return true;
 		}
 		
@@ -83,8 +84,12 @@ public class Quadrant
 	{
 		if( this.hasSpaceObject(obj) )
 		{
-			//System.out.println("Removing object (hash " + obj.getGridID() + " from Quadrant " + getQuadrantHash());
+			//System.out.println("Removing object (obj" + obj.getObjectID() + ") from Quadrant " + getQuadrantID());
+
 			objectsInQuadrant.remove( obj.getObjectID() );
+			obj.lastQuadrant = null;
+			objCounter--;
+			
 			return true;
 		}
 
@@ -94,18 +99,31 @@ public class Quadrant
 	public synchronized boolean swapObjectToQuadrant( Quadrant toQuadrant, SpaceObject obj )
 	{
 		if( removeObjectFromQuadrant(obj) )
-			if( toQuadrant.addObjectToQuadrant(obj) )
-					return true;
+		{
+			obj.lastQuadrant = toQuadrant;
+
+			if( toQuadrant != null )
+			    toQuadrant.addObjectToQuadrant(obj);
+			
+			return true;
+		}
 		
 		return false;
+	}
+	
+	public synchronized void removeAllObjectsFromQuadrant()
+	{
+		if( objectsInQuadrant.size() > 0 )
+			objectsInQuadrant.clear();
 	}
 	
 	public void draw( Graphics2D g2d )
 	{
 		g2d.setColor( Color.GRAY );
 		g2d.draw( new Rectangle2D.Double( x0, y0, w, h) );
-		//g2d.drawString("Hash: " + getQuadrantHash(), x0 + );
-		//g2d.drawString("Objs: " + getNumOfObjectsInQuadrant(), x + Board.WIDTH/(10*Grid.xDiv), y + Board.HEIGHT/(10*Grid.yDiv) + 20);
+		g2d.drawString("(" + getQuadrantID() + ")", (float)(x0 + 10.0f), (float)(y0 + 0.1*h) );
+		g2d.drawString("Objs (" + getNumOfObjectsInQuadrant() + ")", 
+				       (float)(x0 + w - 60), (float)(y0 + 0.1*h));
 		
 	}
 }

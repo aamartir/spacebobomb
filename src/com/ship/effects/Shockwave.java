@@ -38,7 +38,7 @@ public class Shockwave
 	
 	private static ArrayList<Shockwave> shockwaves;
 	
-	public Shockwave( double x, double y )
+	public Shockwave( double x, double y, Color c )
 	{
 		posX = x;
 		posY = y;
@@ -50,7 +50,7 @@ public class Shockwave
 		rateOfExpansion = MAX_RATE_OF_EXPANSION;
 		dissipationRate = MAX_DISSIPATION_RATE;
 		shockwaveDamage = SHOCKWAVE_MAX_DAMAGE;
-		shockwaveColor  = Color.RED;
+		shockwaveColor  = c;
 		visible 		= true;
 	}
 	
@@ -98,12 +98,12 @@ public class Shockwave
 		}
 	}
 	
-	public static void newShockwave( double posX, double posY )
+	public static void newShockwave( double posX, double posY, Color c )
 	{
 		if( shockwaves == null )
 			shockwaves = new ArrayList<Shockwave>();
 		
-		shockwaves.add( new Shockwave(posX, posY) );
+		shockwaves.add( new Shockwave(posX, posY, c) );
 	}
 	
 	public static void drawShockwaves( Graphics g )

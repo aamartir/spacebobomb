@@ -316,11 +316,13 @@ public class SpaceShip extends SpaceObject
 	{
 		if( System.currentTimeMillis() - timeOfLastMissileMillis >= missileRateOfFireMillis )
 		{
+			double r = Math.sqrt( super.getImgWidth()*super.getImgWidth()/4.0 + super.getImgHeight()*super.getImgHeight()/4.0 );
 			weapons.add( new Missile(this,
-		                 super.getPosX() + super.getImgWidth()/2.0, 
-		  	 			 super.getPosY() + super.getImgHeight()/2.0,
-			 			 super.getVelocityX(), super.getVelocityY(),
-			 			 super.getAngle() ));
+					                 super.getPosX() + super.getImgWidth()/2.0 + (r+1)*Math.cos(Math.toRadians(super.getAngle())), 
+					  	 			 super.getPosY() + super.getImgHeight()/2.0 + (r+1)*Math.sin(Math.toRadians(super.getAngle())),
+						 			 super.getVelocityX(), 
+						 			 super.getVelocityY(),
+						 			 super.getAngle() ));
 
 			timeOfLastMissileMillis = System.currentTimeMillis();
 		}

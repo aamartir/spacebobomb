@@ -5,11 +5,14 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
+import java.util.Random;
 
 import spaceGame.SpaceObject;
 
 public class Star
 {
+	private static Random random;
+	
 	private double posX;
 	private double posY;
 	private double size;
@@ -25,14 +28,17 @@ public class Star
 		
 		this.size  = size;
 		this.distance = distance;
+		
 		this.color = color;
+		if( color == null )
+			color = createRandomColor();
 		
 		setStarName(name);
 	}
 	
 	public Star( double x, double y, double distance, double size )
 	{
-		this( "Unknown", x, y, distance, size, Color.WHITE );
+		this( "Unknown", x, y, distance, size, null );
 	}
 	
 	public double geStarSize()
@@ -93,6 +99,22 @@ public class Star
 	public void setStarColor(Color color)
 	{
 		this.color = color;
+	}
+	
+	public Color createRandomColor()
+	{
+		if( random == null )
+			random = new Random();
+
+		switch( random.nextInt(3) )
+		{
+			case 0: 
+				return Color.WHITE;
+			case 1:
+				return Color.RED;
+			default:
+				return Color.BLUE;
+		}
 	}
 	
 	public void drawStar( Graphics2D g2d )

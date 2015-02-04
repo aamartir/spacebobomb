@@ -67,8 +67,15 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 
 	// Other game variables
 	public static Game game;
+	public static Grid grid;
 	private static boolean inGame;
 	private static SpaceObject objSelected;
+	
+	// Re-usable variables for Collision detection
+	Quadrant q       = null;
+	Object[] objInQ  = null;
+	SpaceObject obj1 = null;
+	SpaceObject obj2 = null;
 	
 	// Game Threads
 	private static Thread logicThread;
@@ -127,6 +134,9 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	// Game loop
 	public void initGame()
 	{
+		// Initialize collision grid
+		grid = new Grid( 5, screenWidth, screenHeight );
+		
 		// Initialize spaceships and everything else
 		initSpaceShips();
 		initAsteroids();
@@ -145,7 +155,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		miniMap = new MiniMap( screenWidth, screenHeight, 100, 255 );
 		
 		// Initialize starField
-		starField = new StarField( 10000, -screenWidth, -screenHeight, 2*screenWidth, 2*screenHeight );
+		starField = new StarField( 100, -screenWidth, -screenHeight, 2*screenWidth, 2*screenHeight );
 		
 		// Start logic and rendering threads
 		inGame = true; // Has to be called before start of threads.
@@ -227,6 +237,40 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// 2. Check collisions (Tile based)
 		// For every visible tile
 		// Get all the objects, and see if they are colliding with each other.
+		for( int g = 0; g < grid.size(); g++ )
+		{
+			q = grid.get(g);
+			
+			// Ignore quadrant if there are no objects within it
+			if( q.getNumOfObjectsInQuadrant() < 2 )
+				continue;
+			
+			// Get kth quadrant and the objects inside it
+			objInQ = q.getObjectsInQuadrant();
+			
+			for( int i = 0; i < objInQ.length - 1; i++ )
+			{
+				obj1 = ((SpaceObject) objInQ[i]);
+				if( obj1.isDestroyed() || !obj1.isVisible() )
+					continue;
+				
+				for( int j = i + 1; j < objInQ.length; j++ )
+				{
+					obj2 = ((SpaceObject) objInQ[j]);
+					
+					if( obj2.isDestroyed() || !obj2.isVisible() )
+						continue;
+					
+					if( obj1.isCollidingWith(obj2) )
+					{
+						//System.out.println( "Collision between " + obj1.getObjectID() + " and " + obj2.getObjectID() + "." );
+						
+						obj1.destroySpaceObject( true );
+						obj2.destroySpaceObject( true );
+					}
+				}
+			}
+		}
 		
 		// 3. Move accordingly on next iteration
 		// ...
@@ -281,6 +325,9 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			// Draw starfield
 			starField.drawStarField( graphics );
 						
+			// Draw collision grid for testing purposes
+			grid.drawGrid( graphics );
+			
 			// The minimap is the last thing to draw
 			miniMap.drawMiniMap( graphics );
 								
@@ -394,7 +441,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		
 	public void initSpaceShips()
 	{
-		System.out.print( "Generating spaceships..." );
+		System.out.println( "Generating spaceships..." );
 		
 		// Initialize player spaceship in the middle of the screen
 		playerShip = new PlayerShip( screenWidth/2, screenHeight/2 );
@@ -403,19 +450,18 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 10; i++ )
+		for( int i = 0; i < 50; i++ )
 		{
 			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
-			//EnemyShip.createEnemyShip( enemies, 800, 800, 0, 0, 100 );
 			enemies.get( i ).followSpaceShip( playerShip );
 		}
 		
-		System.out.println( "done" );
+		//System.out.println( "done" );
 	}
 	
 	public void initAsteroids()
 	{
-		System.out.print( "Generating asteroids..." );
+		System.out.println( "Generating asteroids..." );
 		
 		asteroids = new ArrayList<Asteroid>();
 		
@@ -424,171 +470,11 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		{
 			Asteroid.createRandomAsteroid( asteroids, 
 					                       Asteroid.ASTEROID_01, 
-					                       0, 0, screenWidth, screenHeight );
+					                       0, 0, 2*screenWidth, 2*screenHeight );
 		}
-		
-		System.out.println( "done" );
+		//System.out.println( "done" );
 	 }
 
-	public void moveSpaceShipWeapons(SpaceShip aShip)
-	{
-		/*
-		// Move the missiles from the array
-		weaponArr = aShip.getWeaponArr();
-		weaponCount = weaponArr.size();
-			
-		//System.out.println(missileArr.size());
-		
-		int i = 0;
-		while(i < weaponCount && i >= 0)
-		{
-			thisWeapon = weaponArr.get(i);
-			
-			// If the missile is outside the boundaries, don't draw it anymore
-			if(!isWithinBounds(thisWeapon))
-			{
-				weaponArr.remove(thisWeapon);
-				weaponCount--;
-				
-				if(thisWeapon instanceof Missile)
-					aShip.decreaseMissileCounter();
-			}
-			else if(!thisWeapon.isDestroyed())
-				thisWeapon.move();
-			
-			i++;
-		}
-		*/
-	}
-	
-	public void moveAsteroids()
-	{
-		/*
-		int i = 0;
-		while(i < asteroidArr.size() && i >= 0)
-		{
-			thisAsteroid = asteroidArr.get(i);
-			if(isWithinBounds(thisAsteroid) && !thisAsteroid.isDestroyed())
-				thisAsteroid.move();
-			else if(thisAsteroid.isDestroyed() && !thisAsteroid.getExplObj().isVisible() || !isWithinBounds(thisAsteroid))
-			{
-				asteroidArr.remove(i);
-				i--;
-			}
-			
-			i++;
-		}
-		*/
-	}
-	
-	public void moveAllSpaceShips() // Including user's craft
-	{
-		/*
-		for(int i = 0; i < spaceShipArr.size(); i++)
-		{
-			spaceShip = spaceShipArr.get(i); //missiles move regardless
-			moveSpaceShipWeapons(spaceShip); // weapons
-			
-			if(!spaceShip.isDestroyed()) // Only draw if still alive
-			{
-				if(spaceShip instanceof AlienShip)
-				{
-					aShip = (AlienShip) spaceShip;
-					
-					if(aShip.distanceWithRespectTo(craft) < 180 && !craft.isDestroyed() && !aShip.isEscaping())
-						aShip.followAndDestroy(craft);
-					else if(aShip.isEscaping())
-						aShip.escapeFrom(craft);
-					else if(!isWithinBounds(aShip))
-						aShip.followOther(craft);
-					else
-					{
-						aShip.niceBehavior(); // Not following the user
-						aShip.cruise(craft, randomGenerator, WIDTH, HEIGHT);
-					}
-				}
-				
-				spaceShip.move();
-			}	
-			else
-				spaceShipArr.remove(i);
-		}
-		*/
-	}
-	
-	private void drawShipWeapons(Graphics g, ArrayList<Weapon> arr)
-	{
-		/*
-		int m = 0;
-		while(m < arr.size() && m >= 0)
-		{
-			thisWeapon = arr.get(m);
-				
-			if(thisWeapon.isVisible()) // draw if visible
-			{
-				thisWeapon.draw(g2d);
-				
-				if(thisWeapon instanceof SeekMissile)
-					((SeekMissile) thisWeapon).getTrailObject().drawTrail(g2d);
-			}
-			else if(thisWeapon.isDestroyed() && thisWeapon.getExplObj() != null)
-			{
-				if(thisWeapon.getExplObj().isVisible())
-					thisWeapon.drawExplosion(g2d);
-			}
-			else
-			{
-				arr.remove(m);
-				m--;
-			}
-			
-			m++;
-				
-		}
-		*/
-	}
-
-	public void drawAsteroids( Graphics g )
-	{
-		/*
-		if(mousePointer == null)
-			mousePointer = MouseInfo.getPointerInfo().getLocation();
-				
-		int i = 0;
-		while(i < asteroidArr.size() && i >= 0)
-		{
-			thisAsteroid = asteroidArr.get(i);
-			
-			if(!thisAsteroid.isDestroyed()) // if asteroid is not destroyed
-			{
-				thisAsteroid.draw(g2d);
-				
-				// Draw target if mouse is hovering above it
-				if(thisAsteroid.containsPoint(mousePointer) && !thisAsteroid.isSelected())
-				{
-					thisAsteroid.setMouseHover();
-				}
-				else if(!thisAsteroid.isSelected())
-				{
-					thisAsteroid.unsetMouseHover();
-				}
-			}
-			else if(thisAsteroid.getExplObj() != null) // it is destroyed
-			{
-				if(thisAsteroid.getExplObj().isVisible())
-					thisAsteroid.drawExplosion(g2d);
-			}
-			else
-			{
-				asteroidArr.remove(i);
-				i--;
-			}
-			
-			i++;
-		}
-		*/
-	}
-	
 	public static boolean isWithinBounds( SpaceObject obj )
 	{
 		int x = (int) obj.getPosX();

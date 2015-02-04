@@ -13,7 +13,8 @@ public class Missile extends Weapon
 	{
 		super( sourceSpaceShip,
 			   Weapon.MISSILE_IMG, 
-			   posX, posY,  
+			   posX, 
+			   posY,  
 			   v_x + Math.cos( Math.toRadians(initialAngle) ) * MISSILE_VEL, 
 			   v_y + Math.sin( Math.toRadians(initialAngle) ) * MISSILE_VEL,
 			   initialAngle, 0,

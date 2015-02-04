@@ -22,12 +22,20 @@ import Mathematics.Vector2D;
 
 import com.ship.effects.DonutTarget;
 import com.ship.effects.Shockwave;
-import com.ship.effects.RotatingTrianglesTarget;
 
 public class SpaceObject 
 {
+	public static final int NO_SPEED_LIMIT      = 0;
+	public static final int FRICTIONLESS_OBJECT = 0;
+	
 	// Used to generate random numbers for all space objects
 	public static Random randGenerator = new Random();
+
+	private static int objCounter;
+	private        int objectID;
+	
+	private double lastPosX;
+	private double lastPosY;
 	
 	private double pos_x;
 	private double pos_y;
@@ -48,8 +56,10 @@ public class SpaceObject
 	private boolean destroyed;
 	private boolean selected;
 	
-	public static final int NO_SPEED_LIMIT      = 0;
-	public static final int FRICTIONLESS_OBJECT = 0;
+	public Quadrant lastQuadrant;
+	
+	// Collision variables
+	// private Quadrant currentQuadrant;
 	
 	// Moves objects based on their angle
 	public SpaceObject( String imgFilename, // Object's image filename string
@@ -58,6 +68,9 @@ public class SpaceObject
 			            double initialAngle, double rotationDegPerSec,  // Initial angle and angular speed 
 			            double mass ) 
 	{
+		// Keep track of the objects
+		objectID = objCounter++;
+				
 		img = getImgResource( imgFilename );
 		setVelocity( v_x, v_y );
 		setAngle( initialAngle ); // Positive angles are clockwise (inverted)
@@ -67,8 +80,11 @@ public class SpaceObject
 		destroyed = false;
 		visible = true;
 		selected = false;
-		
+
 		collisionBoundary = new CollisionBoundary( x, y, getImgWidth(), getImgHeight() );
+		
+		// Add object to collision grid
+		Game.grid.putObjectInGrid( this );
 	}
 	
 	public SpaceObject( double x, double y, 
@@ -104,6 +120,12 @@ public class SpaceObject
 		pos_x += v_x * dt;
 		pos_y += v_y * dt;
 		
+		if( pos_x != lastPosX || pos_y != lastPosY )
+		{
+			// Update quadrant location of object only when object changes position
+			Game.grid.updateObjectGridQuadrant( this );
+		}
+		
 		// Update angle (based on angular acceleration)
 		if( maxRotationRate == NO_SPEED_LIMIT )
 			rotationDegPerSec += rotationDegPerSecSquared * dt;
@@ -123,6 +145,15 @@ public class SpaceObject
 		collisionBoundary.setPositionAndDimensions( pos_x + getImgWidth()/2.0 - w/2.0, 
 				                                    pos_y + getImgHeight()/2.0 - h/2.0, 
 				                                    w, h );
+		
+		// Keep track of the last position
+		lastPosX = pos_x;
+		lastPosY = pos_y;
+	}
+
+	public int getObjectID()
+	{
+		return objectID;
 	}
 	
 	public double limit( double val, double lowerLimit, double upperLimit )
@@ -217,11 +248,16 @@ public class SpaceObject
 		if( shockwave )
 		{
 			Shockwave.newShockwave( getPosX() + getImgWidth()/2.0, 
-								    getPosY() + getImgHeight()/2.0 ); 
+								    getPosY() + getImgHeight()/2.0,
+								    Color.GRAY ); 
 			
 			// Play sound effect
 			SFX_Player.playSound(SFX_Player.SPACE_SOUND_PATH, SFX_Player.IMPLOSION_01);
 		}
+		
+		// Remove object from collision grid
+		if( lastQuadrant != null )
+			lastQuadrant.removeObjectFromQuadrant( this );
 	}
 	
 	public boolean isCollidingWith( SpaceObject other )
@@ -475,7 +511,7 @@ public class SpaceObject
 		}
 		
 		//Draw collision boundary (does not rotate with object, so it has to be drawn either before or after transform)
-	    //collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
+	    collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
 	}
 	
 	public void select()
