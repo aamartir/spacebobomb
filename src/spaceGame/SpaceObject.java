@@ -140,8 +140,13 @@ public class SpaceObject
 		angle = checkAngleBoundaries( angle + rotationDegPerSec * dt );
 		
 		// Update collisionBoundary position ( Not very good )
-		double w = Math.abs(getImgWidth()*Math.cos(Math.toRadians(angle))) + Math.abs(getImgHeight()*Math.sin(Math.toRadians(angle)));
-		double h = Math.abs(getImgHeight()*Math.cos(Math.toRadians(angle))) + Math.abs(getImgWidth()*Math.sin(Math.toRadians(angle)));
+		//double w = Math.abs(getImgWidth()*Math.cos(Math.toRadians(angle))) + Math.abs(getImgHeight()*Math.sin(Math.toRadians(angle)));
+		//double h = Math.abs(getImgHeight()*Math.cos(Math.toRadians(angle))) + Math.abs(getImgWidth()*Math.sin(Math.toRadians(angle)));
+		double w = getImgWidth()*Math.cos(Math.toRadians(angle))*Math.cos(Math.toRadians(angle)) + 
+				   getImgHeight()*Math.sin(Math.toRadians(angle))*Math.sin(Math.toRadians(angle));
+		double h = getImgHeight()*Math.cos(Math.toRadians(angle))*Math.cos(Math.toRadians(angle)) + 
+				   getImgWidth()*Math.sin(Math.toRadians(angle))*Math.sin(Math.toRadians(angle));
+				
 		collisionBoundary.setPositionAndDimensions( pos_x + getImgWidth()/2.0 - w/2.0, 
 				                                    pos_y + getImgHeight()/2.0 - h/2.0, 
 				                                    w, h );

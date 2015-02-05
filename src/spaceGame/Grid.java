@@ -77,7 +77,8 @@ public class Grid
 	{
 		if( obj != null )
 		{
-			Quadrant q = getQuadrantPerPoint( obj.getPosX(), obj.getPosY() );
+			Quadrant q = getQuadrantPerPoint( obj.getPosX() - Game.getCamera().getViewportMinX(), 
+					                          obj.getPosY() - Game.getCamera().getViewportMinY() );
 			
 			// Swap to different quadrant
 			swapObjectToQuadrant( obj.lastQuadrant, q, obj );
