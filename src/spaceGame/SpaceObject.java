@@ -25,6 +25,14 @@ import com.ship.effects.Shockwave;
 
 public class SpaceObject 
 {
+	public static final int SPACE_OBJ_TYPE      = 0;
+	public static final int PLAYERSHIP_OBJ_TYPE = 1;
+	public static final int ENEMYSHIP_OBJ_TYPE  = 2;
+	public static final int SPACESHIP_OBJ_TYPE  = 3;
+	public static final int MISSILE_OBJ_TYPE    = 4;
+	public static final int WEAPON_OBJ_TYPE     = 5;
+	public static final int ASTEROID_OBJ_TYPE   = 6;
+	
 	public static final int NO_SPEED_LIMIT      = 0;
 	public static final int FRICTIONLESS_OBJECT = 0;
 	
@@ -33,6 +41,7 @@ public class SpaceObject
 
 	private static int objCounter;
 	private        int objectID;
+	private        int objectType; // EnemyShip, PlayerShip, SpaceShip, Asteroid, Missile, Weapon, etc.
 	
 	private double lastPosX;
 	private double lastPosY;
@@ -63,14 +72,16 @@ public class SpaceObject
 	
 	// Moves objects based on their angle
 	public SpaceObject( String imgFilename, // Object's image filename string
-			            double x, double y, // Initial position
+						int objType,
+			            double x, double y, // Initial position  
 			            double v_x, double v_y, // Initial velocity
 			            double initialAngle, double rotationDegPerSec,  // Initial angle and angular speed 
 			            double mass ) 
 	{
 		// Keep track of the objects
 		objectID = objCounter++;
-				
+	    objectType = objType;
+	    
 		img = getImgResource( imgFilename );
 		setVelocity( v_x, v_y );
 		setAngle( initialAngle ); // Positive angles are clockwise (inverted)
@@ -87,12 +98,13 @@ public class SpaceObject
 		Game.grid.putObjectInGrid( this );
 	}
 	
-	public SpaceObject( double x, double y, 
+	public SpaceObject( int objType,
+			            double x, double y, 
 			            double v_x, double v_y, 
 			            double initialAngle, double rotationDegPerSec, 
 			            double mass )
 	{
-		this( null, x, y, v_x, v_y, initialAngle, rotationDegPerSec, mass );
+		this( null, objType, x, y, v_x, v_y, initialAngle, rotationDegPerSec, mass );
 	}
 	
 	// This function is called automatically for every space object
@@ -159,6 +171,11 @@ public class SpaceObject
 	public int getObjectID()
 	{
 		return objectID;
+	}
+	
+	public int getObjectType()
+	{
+		return objectType;
 	}
 	
 	public double limit( double val, double lowerLimit, double upperLimit )
@@ -516,7 +533,7 @@ public class SpaceObject
 		}
 		
 		//Draw collision boundary (does not rotate with object, so it has to be drawn either before or after transform)
-	    collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
+	    //collisionBoundary.drawCollisionBoundary( (Graphics2D) g );	
 	}
 	
 	public void select()

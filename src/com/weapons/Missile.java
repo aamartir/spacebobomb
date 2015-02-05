@@ -4,7 +4,7 @@ import spaceGame.SpaceShip;
 
 public class Missile extends Weapon
 {
-	public static final int    MISSILE_DMG 		   	  = 10;
+	public static final int    MISSILE_DMG 		   	  = 20;
 	public static final int    MISSILE_EXPL_RAD 	  = 30;
 	public static final double MISSILE_VEL 		   	  = 0.4;
 	public static final double MISSILE_DISTANCE       = 800.0;
@@ -13,6 +13,7 @@ public class Missile extends Weapon
 	{
 		super( sourceSpaceShip,
 			   Weapon.MISSILE_IMG, 
+			   SpaceShip.MISSILE_OBJ_TYPE,
 			   posX, 
 			   posY,  
 			   v_x + Math.cos( Math.toRadians(initialAngle) ) * MISSILE_VEL, 

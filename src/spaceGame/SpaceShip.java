@@ -80,9 +80,9 @@ public class SpaceShip extends SpaceObject
 	// Status messages to display on top of spaceship 
 	private ArrayList<StatusMessage> statusMessages;
 
-	public SpaceShip( String spaceshipType, double x, double y, double v_x, double v_y, double initialAngle, double mass )
+	public SpaceShip( String spaceshipType, int objType, double x, double y, double v_x, double v_y, double initialAngle, double mass )
 	{
-		super( spaceshipType, x, y, v_x, v_y, initialAngle, 0, mass );
+		super( spaceshipType, objType, x, y, v_x, v_y, initialAngle, 0, mass );
 
 		// Set exhaust image
 		//exhaustImg = SpaceObject.getImgResource( SHIP_EXHAUST_01 );
@@ -560,7 +560,7 @@ public class SpaceShip extends SpaceObject
 		g.drawString(str, x, y);
 	}
 	
-	public void decreaseLife( int val )
+	public void decreaseLife( double val )
 	{
 		if( this.life > 0 )
 		{

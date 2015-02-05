@@ -20,13 +20,14 @@ public class Weapon extends SpaceObject
 
 	public Weapon( SpaceShip source,
 				   String type, 
+				   int objType,
 			       double posX, double posY, 
 			       double v_x, double v_y, 
 			       double initialAngle, double rotDegPerSec,
 			       double mass,
 			       int dmg )
 	{
-		super( type, posX, posY, v_x, v_y, initialAngle, rotDegPerSec, mass );
+		super( type, objType, posX, posY, v_x, v_y, initialAngle, rotDegPerSec, mass );
 		
 		this.dmg = dmg;
 
@@ -47,6 +48,11 @@ public class Weapon extends SpaceObject
 			// Missile will be removed from array, next time logic function is called (in Game.java)
 			super.destroySpaceObject( false );
 		}
+	}
+	
+	public SpaceShip getSourceSpaceShip()
+	{
+		return sourceSpaceShip;
 	}
 	
 	public int getDmg() 

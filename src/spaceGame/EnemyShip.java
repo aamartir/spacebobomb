@@ -29,7 +29,7 @@ public class EnemyShip extends SpaceShip
 	
 	public EnemyShip( double x, double y, double v_x, double v_y, double initialAngle )
 	{
-		super( SpaceShip.SPACESHIP_03, x, y, v_x, v_y, initialAngle, SpaceShip.SPACESHIP_MASS );
+		super( SpaceShip.SPACESHIP_03, SpaceShip.ENEMYSHIP_OBJ_TYPE, x, y, v_x, v_y, initialAngle, SpaceShip.SPACESHIP_MASS );
 		
 		directionPID = new PID( 0.75, 0.0, 500.0 ); //( 0.01, 0.0, 5.0 ); 
 		distancePID  = new PID( 0.05, 0.0, 2.5 ); 

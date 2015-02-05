@@ -9,6 +9,7 @@ public class Asteroid extends SpaceObject
 {
 	public static final double ASTEROID_MAX_SPEED 		 = 0.05;
 	public static final double ASTEROID_MAX_TURNING_RATE = 0.4;
+	public static final double ASTEROID_COLLISION_DAMAGE = 50.0;
 	public static final double ASTEROID_MASS             = 1.0;
 			
 	public static final String ASTEROID_01 = "asteroid01.png";
@@ -19,7 +20,7 @@ public class Asteroid extends SpaceObject
 	public Asteroid( String asteroidType, double x, double y, double v_x, double v_y, double initialAngle, double rotationDegPerSec, double mass )
 	{
 		// Super constructor
-		super( asteroidType, x, y, v_x, v_y, initialAngle, rotationDegPerSec, ASTEROID_MASS );
+		super( asteroidType, SpaceObject.ASTEROID_OBJ_TYPE, x, y, v_x, v_y, initialAngle, rotationDegPerSec, ASTEROID_MASS );
 		super.setRotationRateDegPerSec( rotationDegPerSec );
 	}
 	

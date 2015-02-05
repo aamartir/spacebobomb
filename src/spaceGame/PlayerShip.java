@@ -6,7 +6,7 @@ public class PlayerShip extends SpaceShip
 {	
 	public PlayerShip( int x, int y )
 	{
-		super( SpaceShip.SPACESHIP_01, x, y, 0, 0, 0, SpaceShip.SPACESHIP_MASS );
+		super( SpaceShip.SPACESHIP_01, SpaceObject.PLAYERSHIP_OBJ_TYPE, x, y, 0, 0, 0, SpaceShip.SPACESHIP_MASS );
 	}
 	
 	/*

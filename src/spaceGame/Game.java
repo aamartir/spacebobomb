@@ -43,7 +43,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 
 	// FPS
 	private static final int timeSliceDuration = 1000;
-	public  static final int framesPerSec = 70;
+	public  static final int framesPerSec = 60;
 	public  static final int msPerFrame = ((int) 1000.0/framesPerSec);
 	
 	private static long currentTimeSlice;
@@ -70,12 +70,6 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	public static Grid grid;
 	private static boolean inGame;
 	private static SpaceObject objSelected;
-	
-	// Re-usable variables for Collision detection
-	Quadrant q       = null;
-	Object[] objInQ  = null;
-	SpaceObject obj1 = null;
-	SpaceObject obj2 = null;
 	
 	// Game Threads
 	private static Thread logicThread;
@@ -165,7 +159,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		logicThread = new Thread( new GameLogic() );
 		
 		// Thread priority
-		logicThread.setPriority( Thread.MAX_PRIORITY );
+		// logicThread.setPriority( Thread.MAX_PRIORITY );
 		//renderThread.setPriority( Thread.MAX_PRIORITY );
 		
 		renderThread.start();
@@ -237,39 +231,13 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// 2. Check collisions (Tile based)
 		// For every visible tile
 		// Get all the objects, and see if they are colliding with each other.
-		for( int g = 0; g < grid.size(); g++ )
+		Collision.checkCollisions();
+		
+		// What happens if player dies???
+		if( playerShip.isDestroyed() )
 		{
-			q = grid.get(g);
-			
-			// Ignore quadrant if there are no objects within it
-			if( q.getNumOfObjectsInQuadrant() < 2 )
-				continue;
-			
-			// Get kth quadrant and the objects inside it
-			objInQ = q.getObjectsInQuadrant();
-			
-			for( int i = 0; i < objInQ.length - 1; i++ )
-			{
-				obj1 = ((SpaceObject) objInQ[i]);
-				if( obj1.isDestroyed() || !obj1.isVisible() )
-					continue;
-				
-				for( int j = i + 1; j < objInQ.length; j++ )
-				{
-					obj2 = ((SpaceObject) objInQ[j]);
-					
-					if( obj2.isDestroyed() || !obj2.isVisible() )
-						continue;
-					
-					if( obj1.isCollidingWith(obj2) )
-					{
-						//System.out.println( "Collision between " + obj1.getObjectID() + " and " + obj2.getObjectID() + "." );
-						
-						obj1.destroySpaceObject( true );
-						obj2.destroySpaceObject( true );
-					}
-				}
-			}
+			playerShip.setAcceleration( 0, 0 );
+			playerShip.setVelocity( 0, 0 );
 		}
 		
 		// 3. Move accordingly on next iteration
@@ -315,9 +283,9 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			drawFPS( graphics, getLastFPS() );
 			
 			// Draw statistical variables
-			drawScreenMessage( graphics, "Spaceships rendered: " + spaceShipsRendered, 14, 20, 60, Color.YELLOW );
-			drawScreenMessage( graphics, "Asteroids rendered: "  + asteroidsRendered,  14, 20, 80, Color.YELLOW );
-			drawScreenMessage( graphics, "Weapons rendered: "    + weaponsRendered,    14, 20, 100, Color.YELLOW );
+			drawScreenMessage( graphics, "Spaceships rendered: " + spaceShipsRendered, 14, 20, 60, Color.GRAY );
+			drawScreenMessage( graphics, "Asteroids rendered: "  + asteroidsRendered,  14, 20, 80, Color.GRAY );
+			drawScreenMessage( graphics, "Weapons rendered: "    + weaponsRendered,    14, 20, 100, Color.GRAY );
 			
 			// Draw msg "Escape to exit game"
 			drawScreenMessage( graphics, "Press Escape key to exit game", 14, 20, 120, Color.YELLOW );
@@ -326,15 +294,15 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			starField.drawStarField( graphics );
 						
 			// Draw collision grid for testing purposes
-			grid.drawGrid( graphics );
+			//grid.drawGrid( graphics );
 			
 			// The minimap is the last thing to draw
 			miniMap.drawMiniMap( graphics );
 								
 			// Clear statistical variables
-			weaponsRendered = 0;
+			weaponsRendered    = 0;
 			spaceShipsRendered = 0;
-			asteroidsRendered = 0;
+			asteroidsRendered  = 0;
 			
 			// Translate screen so that player is always in the center (This should be done before all objects are drawn, so that
 			// everything is translated properly).
@@ -450,7 +418,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
-		for( int i = 0; i < 50; i++ )
+		for( int i = 0; i < 10; i++ )
 		{
 			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
 			enemies.get( i ).followSpaceShip( playerShip );
@@ -466,7 +434,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		asteroids = new ArrayList<Asteroid>();
 		
 		// Create some asteroids
-		for( int i = 0; i < 10; i++ )
+		for( int i = 0; i < 20; i++ )
 		{
 			Asteroid.createRandomAsteroid( asteroids, 
 					                       Asteroid.ASTEROID_01, 
@@ -725,19 +693,21 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		{
 			int key = e.getKeyCode();
 			
-			// Accelerate
-			if(key == KeyEvent.VK_W)
-				playerShip.setSpaceShipThrust( playerShip.getMaxThrust() );
-			else if(key == KeyEvent.VK_A)
-				playerShip.setSpaceShipAngularThrust( -playerShip.getMaxAngularThrust());
-			else if(key == KeyEvent.VK_D)
-				playerShip.setSpaceShipAngularThrust( playerShip.getMaxAngularThrust() );
-			else if( key == KeyEvent.VK_ESCAPE )
+			if( key == KeyEvent.VK_ESCAPE )
 				inGame = false;
-			else if( key == KeyEvent.VK_SPACE )
-				playerShip.fireMissile();
-			else if( key == KeyEvent.VK_K ) // This is to test different features
-				playerShip.decreaseLife(10);
+			else if( !playerShip.isDestroyed() && playerShip.isVisible() )
+			{
+				if(key == KeyEvent.VK_W)
+					playerShip.setSpaceShipThrust( playerShip.getMaxThrust() );
+				else if(key == KeyEvent.VK_A)
+					playerShip.setSpaceShipAngularThrust( -playerShip.getMaxAngularThrust());
+				else if(key == KeyEvent.VK_D)
+					playerShip.setSpaceShipAngularThrust( playerShip.getMaxAngularThrust() );
+				else if( key == KeyEvent.VK_SPACE )
+					playerShip.fireMissile();
+				else if( key == KeyEvent.VK_K ) // This is to test different features
+					playerShip.decreaseLife(10);
+			}
 		}
 		
 		public void keyReleased(KeyEvent e)
@@ -746,10 +716,13 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			
 			//System.out.println( "Key released: " + key );
 			
-			if( key == KeyEvent.VK_A || key == KeyEvent.VK_D )
-				playerShip.setSpaceShipAngularThrust( 0 );
-			else if( key == KeyEvent.VK_W )
-				playerShip.setSpaceShipThrust( 0 );
+			if( !playerShip.isDestroyed() && playerShip.isVisible() )
+			{
+				if( key == KeyEvent.VK_A || key == KeyEvent.VK_D )
+					playerShip.setSpaceShipAngularThrust( 0 );
+				else if( key == KeyEvent.VK_W )
+					playerShip.setSpaceShipThrust( 0 );
+			}
 		}
 	}
 }
