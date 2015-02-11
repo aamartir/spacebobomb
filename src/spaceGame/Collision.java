@@ -201,8 +201,25 @@ public class Collision
 	public static boolean asteroidCollision( Asteroid a, Asteroid b )
 	{
 		// TODO (Destroy less massive asteroid)
-		a.destroySpaceObject( true );
-		b.destroySpaceObject( true );
+		double velX = a.getVelocityX();
+		double velY = a.getVelocityY();
+		double rot  = a.getRotationRateDegPerSec();
+		
+		if( a.lastObjectCollided != null && b.lastObjectCollided != null )
+		{
+			if( a.lastObjectCollided.getObjectID() == b.getObjectID() || b.lastObjectCollided.getObjectID() == a.getObjectID() )
+				return false;
+		}
+		
+		// Modify a
+		a.setVelocity( b.getVelocityX(), b.getVelocityY() );
+		a.setRotationRateDegPerSec( b.getRotationRateDegPerSec() );
+		a.lastObjectCollided = b;
+		
+		// Modify b
+		b.setVelocity( velX, velY );
+		b.setRotationRateDegPerSec( rot );
+		b.lastObjectCollided = a;
 		
 		return true;
 	}

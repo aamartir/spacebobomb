@@ -58,17 +58,17 @@ public class SpaceObject
 	private double rotationDegPerSec; // The rate of change of rotationAngle
 	
 	private ImageIcon img;
-	private CollisionBoundary collisionBoundary;
+	
 	private AffineTransform transf;
 	private static AffineTransform savedTransform;
 	private boolean visible;
 	private boolean destroyed;
 	private boolean selected;
-	
-	public Quadrant lastQuadrant;
-	
+
 	// Collision variables
-	// private Quadrant currentQuadrant;
+	private CollisionBoundary collisionBoundary;
+	public Quadrant lastQuadrant;
+	public SpaceObject lastObjectCollided;
 	
 	// Moves objects based on their angle
 	public SpaceObject( String imgFilename, // Object's image filename string

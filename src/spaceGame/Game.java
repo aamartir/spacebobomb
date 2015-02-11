@@ -403,7 +403,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Add some enemies at random locations (test)
 		EnemyShip ship;
 		
-		for( int i = 0; i < 10; i++ )
+		for( int i = 0; i < 0; i++ )
 		{
 			//EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
 			//enemies.get( i ).followSpaceShip( playerShip );
