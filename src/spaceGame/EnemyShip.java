@@ -1,6 +1,7 @@
 package spaceGame;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 public class EnemyShip extends SpaceShip
@@ -247,17 +248,32 @@ public class EnemyShip extends SpaceShip
 		return strategy;
 	}
 	
-	public static void createEnemyShip( ArrayList<EnemyShip> arr, 
+	public static EnemyShip createEnemyShip( double speedX, double speedY,
+											 double initialAngle,
+			                                 double minX, double minY, 
+			                                 double maxX, double maxY )
+	{
+		// random point in space within given boundaries
+		double posX = SpaceObject.randGenerator.nextDouble()*(maxX - minX) + minX;
+		double posY = SpaceObject.randGenerator.nextDouble()*(maxY - minY) + minY;
+		
+		return new EnemyShip( posX, posY, speedX, speedY, initialAngle );
+	}
+	
+	//public static void createEnemyShip( ArrayList<EnemyShip> arr,
+	public static void createEnemyShip( HashMap<Integer, SpaceObject> map,
 			                            double posX, double posY, 
 			                            double speedX, double speedY, 
 			                            double initialAngle )
 	{
-		arr.add( new EnemyShip(posX, posY, speedX, speedY, initialAngle) );
+		EnemyShip ship = new EnemyShip( posX, posY, speedX, speedY, initialAngle );
+		map.put( ship.getObjectID(), ship );
 	}
 	
 	// Initial position is not given. Spawn at random location in map 
 	// between {minX, minY} and {maxX, maxY}
-	public static void createEnemyShip( ArrayList<EnemyShip> arr,
+	//public static void createEnemyShip( ArrayList<EnemyShip> arr,
+	public static void createEnemyShip( HashMap<Integer, SpaceObject> map,
 			                            double speedX, double speedY,
 			                            double initialAngle,
 			                            double minX, double minY, double maxX, double maxY )
@@ -266,6 +282,6 @@ public class EnemyShip extends SpaceShip
 		double posX = SpaceObject.randGenerator.nextDouble()*(maxX - minX) + minX;
 		double posY = SpaceObject.randGenerator.nextDouble()*(maxY - minY) + minY;
 		
-		createEnemyShip( arr, posX, posY, speedX, speedY, initialAngle );
+		createEnemyShip( map, posX, posY, speedX, speedY, initialAngle );
 	}
 }

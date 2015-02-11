@@ -3,6 +3,8 @@ package panel;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.util.Iterator;
+import java.util.Map;
 
 import Mathematics.MyMath;
 
@@ -10,6 +12,7 @@ import com.space.Asteroid;
 
 import spaceGame.EnemyShip;
 import spaceGame.Game;
+import spaceGame.SpaceObject;
 
 public class MiniMap 
 {
@@ -30,6 +33,9 @@ public class MiniMap
 	private Color spaceshipColor;
 	private Color asteroidColor;
 
+	private static Iterator<Map.Entry<Integer, SpaceObject>> it;
+	private static SpaceObject obj;
+	
 	public MiniMap( int viewportWidth, int viewportHeight, 
 			        int mapRadius,
 			        int alpha )
@@ -86,37 +92,31 @@ public class MiniMap
 		g.fillOval( (int)(mapLeftMargin + mapRadius - MAP_OBJECT_RADIUS),
 				    (int)(mapTopMargin + mapRadius - MAP_OBJECT_RADIUS), 
 				    2*MAP_OBJECT_RADIUS, 2*MAP_OBJECT_RADIUS ); 
-		
-		// Draw all enemies nearby
-		for( EnemyShip ship : Game.getEnemiesWithinViewport() )
-		{
-			if( ship.distanceWithRespectTo(Game.getPlayer()) >= mapHorizon )
-				continue;
 
-			g.setColor( spaceshipColor );
-			g.fillOval( (int) MyMath.map(ship.getPosX() - Game.getCamera().getPosX(),
+		// Iterate through all object in collection
+		it = Game.spaceObjects.entrySet().iterator();
+		while( it.hasNext() )
+		{
+			obj = it.next().getValue();
+			if( obj.distanceWithRespectTo(Game.getPlayer()) >= mapHorizon ||
+				obj.isDestroyed() || !obj.isVisible() )
+				continue;
+			
+			if( obj.getObjectType() == SpaceObject.ENEMYSHIP_OBJ_TYPE )
+				g.setColor( spaceshipColor );
+			else if( obj.getObjectType() == SpaceObject.ASTEROID_OBJ_TYPE )
+				g.setColor( asteroidColor );
+			else // Don't draw anything else
+				continue;
+			
+			g.fillOval( (int) MyMath.map(obj.getPosX() - Game.getCamera().getPosX(),
 					                    -mapHorizon, mapHorizon, 
 					                     mapLeftMargin, mapLeftMargin + mapRadius*2.0 ), 
-					    (int) MyMath.map(ship.getPosY() - Game.getCamera().getPosY(),
+					    (int) MyMath.map(obj.getPosY() - Game.getCamera().getPosY(),
 							            -mapHorizon, mapHorizon, 
 							             mapTopMargin, mapTopMargin + mapRadius*2.0 ), 
 					     2*MAP_OBJECT_RADIUS, 2*MAP_OBJECT_RADIUS );
-		}
-		
-		// Draw asteroids nearby
-		for( Asteroid asteroid : Game.getAsteroidsWithinViewport() )
-		{
-			if( asteroid.distanceWithRespectTo(Game.getPlayer()) >= mapHorizon )
-				continue;
-
-				g.setColor( asteroidColor );
-				g.fillOval( (int) MyMath.map(asteroid.getPosX() - Game.getCamera().getPosX(),
-						                    -mapHorizon, mapHorizon, 
-						                     mapLeftMargin, mapLeftMargin + mapRadius*2.0 ), 
-						    (int) MyMath.map(asteroid.getPosY() - Game.getCamera().getPosY(),
-								            -mapHorizon, mapHorizon, 
-								             mapTopMargin, mapTopMargin + mapRadius*2.0 ), 
-						     2*MAP_OBJECT_RADIUS, 2*MAP_OBJECT_RADIUS );
+			
 		}
 	}
 }

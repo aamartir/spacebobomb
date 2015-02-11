@@ -24,6 +24,11 @@ import java.awt.event.WindowEvent;
 //import java.awt.event.ActionListener;
 //import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.ship.effects.Shockwave;
 import com.ship.effects.RotatingTrianglesTarget;
@@ -43,7 +48,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 
 	// FPS
 	private static final int timeSliceDuration = 1000;
-	public  static final int framesPerSec = 60;
+	public  static final int framesPerSec = 70;
 	public  static final int msPerFrame = ((int) 1000.0/framesPerSec);
 	
 	private static long currentTimeSlice;
@@ -61,10 +66,11 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	private static SpaceCamera camera;
 	private static SpaceObjectSelector selector;
 	private static MiniMap miniMap;
+	
+	// Object Collection Data structures
 	private static StarField starField;
-	private static ArrayList<EnemyShip> enemies;
-	private static ArrayList<Asteroid> asteroids;
-
+    public static ConcurrentHashMap<Integer, SpaceObject> spaceObjects;
+    
 	// Other game variables
 	public static Game game;
 	public static Grid grid;
@@ -79,6 +85,10 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	private BufferStrategy bufferStrategy;
 	private RenderingHints renderHints;
 	private Graphics graphics;
+	
+	// Reusable variales
+	private static Iterator<Map.Entry<Integer, SpaceObject>> it;
+	private static SpaceObject obj;
 	
 	public static void main( String[] args )
 	{
@@ -131,6 +141,9 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Initialize collision grid
 		grid = new Grid( 5, screenWidth, screenHeight );
 		
+		// Initialize spaceObject hashMap
+		spaceObjects = new ConcurrentHashMap<Integer, SpaceObject>();
+		
 		// Initialize spaceships and everything else
 		initSpaceShips();
 		initAsteroids();
@@ -155,14 +168,14 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		inGame = true; // Has to be called before start of threads.
 		
 		// Instantiate threads (render and logic)
-		renderThread = new Thread( new GameRender() );
+		//renderThread = new Thread( new GameRender() );
 		logicThread = new Thread( new GameLogic() );
 		
 		// Thread priority
-		// logicThread.setPriority( Thread.MAX_PRIORITY );
+		logicThread.setPriority( Thread.MAX_PRIORITY );
 		//renderThread.setPriority( Thread.MAX_PRIORITY );
 		
-		renderThread.start();
+		//renderThread.start();
 		logicThread.start();
 
 		// Used for fps
@@ -179,50 +192,36 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Update spaceship messages
 		playerShip.updateSpaceShipStatusMessages( dt );
 		
-		// Move our player's weapons
-		for( int i = 0; i < playerShip.getWeaponsFired().size(); i++ )
+		// Reusable variables (declared up top)
+		it = spaceObjects.entrySet().iterator();
+		obj = null;
+		
+		while( it.hasNext() )
 		{
-			if( playerShip.getWeaponsFired().get(i).isDestroyed() )
+			obj = it.next().getValue();
+			if( obj.isDestroyed() )
 			{
-				playerShip.getWeaponsFired().remove( i );
+				it.remove();
 				continue;
 			}
-			else
-			{
-				// Update the motion of each weapon
-				playerShip.getWeaponsFired().get(i).updateWeaponMotion( dt );
-			}
-		}
-		
-		// 1a. Update enemies' motion
-		for( EnemyShip enemy : enemies )
-		{
-			// Update AI and motion (motion is updated automatically within AI method).
-			enemy.AI( dt );
 			
-			// Update enemy status messages (motion)
-			enemy.updateSpaceShipStatusMessages( dt );
-			
-			// For every enemy ship, update motion of weapons fired. 
-			for( int i = 0; i < enemy.getWeaponsFired().size(); i++ )
+			// else 
+			switch( obj.getObjectType() )
 			{
-				if( enemy.getWeaponsFired().get(i).isDestroyed() )
-				{
-					enemy.getWeaponsFired().remove( i );
-					continue;
-				}
-				else
-				{
-					// Update the motion of each weapon
-					enemy.getWeaponsFired().get(i).updateWeaponMotion( dt );
-				}
+				case SpaceObject.SPACESHIP_OBJ_TYPE:
+					((SpaceShip)obj).updateSpaceShipMotion( dt );
+					break;
+				case SpaceObject.ENEMYSHIP_OBJ_TYPE:
+					((EnemyShip)obj).AI( dt );
+					((EnemyShip)obj).updateSpaceShipStatusMessages( dt );
+					break;
+				case SpaceObject.ASTEROID_OBJ_TYPE:
+					((Asteroid)obj).updateAsteroidMotion( dt );
+					break;
+				case SpaceObject.MISSILE_OBJ_TYPE:
+					((com.weapons.Missile)obj).updateWeaponMotion( dt );
+					break;
 			}
-		}
-		
-		// Update asteroid dynamics
-		for( Asteroid asteroid : asteroids )
-		{
-			asteroid.updateAsteroidMotion( dt );
 		}
 		
 		// Update shockwave and explosions
@@ -231,7 +230,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// 2. Check collisions (Tile based)
 		// For every visible tile
 		// Get all the objects, and see if they are colliding with each other.
-		Collision.checkCollisions();
+	    Collision.checkCollisions();
 		
 		// What happens if player dies???
 		if( playerShip.isDestroyed() )
@@ -307,58 +306,42 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			// Translate screen so that player is always in the center (This should be done before all objects are drawn, so that
 			// everything is translated properly).
 			//((Graphics2D)graphics).translate( -playerShip.getPosX() + getWidth()/2.0, -playerShip.getPosY() + getHeight()/2.0 );
-			((Graphics2D)graphics).translate( -camera.getPosX() + camera.getViewportWidth()/2.0, 
-					                          -camera.getPosY() + camera.getViewportHeight()/2.0 );
+			((Graphics2D)graphics).translate( -camera.getPosX() + ((double)camera.getViewportWidth())/2.0, 
+					                          -camera.getPosY() + ((double)camera.getViewportHeight())/2.0 );
 			
 			// Draw our little spaceship friend
 			playerShip.drawSpaceShip( graphics );
 			spaceShipsRendered++;
 			
-			// Draw weapons fired of player ship
-			for( Weapon weapon : playerShip.getWeaponsFired() )
-			{
-				// Draw weapon if within viewport
-				if( weapon.isWithinViewport( camera.getViewportMinX(), camera.getViewportMinY(), 
-                        					 camera.getViewportMaxX(), camera.getViewportMaxY()) &&
-                    !weapon.isDestroyed() )
-				{
-					weaponsRendered++;
-					weapon.drawSpaceObject( graphics );
-				}
-			}
+			// Reusable variables
+			it = spaceObjects.entrySet().iterator();
+			obj = null;
 			
-			// Draw enemy space ships
-			for( SpaceShip ship : enemies )
+			while( it.hasNext() )
 			{
-				if( ship.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
-	                                      camera.getViewportMaxX(), camera.getViewportMaxY()) )
+				obj = it.next().getValue();
+				
+				// Dont draw object if it is outside of the viewing area
+				if( !obj.isWithinViewport( camera.getViewportMinX(), camera.getViewportMinY(), 
+   					                       camera.getViewportMaxX(), camera.getViewportMaxY()) )
 				{
-					spaceShipsRendered++;
-					ship.drawSpaceShip( graphics );
+					continue;
 				}
 				
-				// Draw weapons fired if within viewport as well
-				for( Weapon weapon : ship.getWeaponsFired() )
+				// else 
+				switch( obj.getObjectType() )
 				{
-					if( weapon.isWithinViewport( camera.getViewportMinX(), camera.getViewportMinY(), 
-                            					 camera.getViewportMaxX(), camera.getViewportMaxY()) && 
-                        !weapon.isDestroyed() )
-        			{
-						weaponsRendered++;
-						weapon.drawSpaceObject( graphics );
-                    }
-				}
-			}
-			
-			// Draw asteroids
-			for( Asteroid asteroid : asteroids )
-			{
-				if( asteroid.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
-						                      camera.getViewportMaxX(), camera.getViewportMaxY()) &&
-				    asteroid.isVisible() )
-				{
-					asteroidsRendered++;
-					asteroid.drawAsteroid( graphics );
+					case SpaceObject.ENEMYSHIP_OBJ_TYPE:
+					case SpaceObject.SPACESHIP_OBJ_TYPE:
+						((SpaceShip)obj).drawSpaceShip( graphics );
+						break;
+					case SpaceObject.ASTEROID_OBJ_TYPE:
+						((Asteroid)obj).drawAsteroid( graphics );
+						break;
+					//case SpaceObject.MISSILE_OBJ_TYPE:
+						//break;
+					default:
+						obj.drawSpaceObject( graphics );
 				}
 			}
 			
@@ -415,13 +398,20 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		playerShip = new PlayerShip( screenWidth/2, screenHeight/2 );
 		
 		// Initialize enemie arraylist.
-		enemies = new ArrayList<EnemyShip>();
+		//enemies = new ArrayList<EnemyShip>();
 		
 		// Add some enemies at random locations (test)
+		EnemyShip ship;
+		
 		for( int i = 0; i < 10; i++ )
 		{
-			EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
-			enemies.get( i ).followSpaceShip( playerShip );
+			//EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
+			//enemies.get( i ).followSpaceShip( playerShip );
+			ship = EnemyShip.createEnemyShip( 0, 0, 0, 0, 0, screenWidth, screenHeight );
+			ship.followSpaceShip( playerShip );
+			
+			// Put object into collection
+			spaceObjects.put( ship.getObjectID(), ship );
 		}
 		
 		//System.out.println( "done" );
@@ -431,14 +421,16 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	{
 		System.out.println( "Generating asteroids..." );
 		
-		asteroids = new ArrayList<Asteroid>();
+		//asteroids = new ArrayList<Asteroid>();
 		
 		// Create some asteroids
+		Asteroid ast;
+		
 		for( int i = 0; i < 20; i++ )
 		{
-			Asteroid.createRandomAsteroid( asteroids, 
-					                       Asteroid.ASTEROID_01, 
-					                       0, 0, 2*screenWidth, 2*screenHeight );
+			//Asteroid.createRandomAsteroid( asteroids, Asteroid.ASTEROID_01, 0, 0, screenWidth, screenHeight );
+			ast = Asteroid.createRandomAsteroid( Asteroid.ASTEROID_01, 0, 0, screenWidth, screenHeight );
+			spaceObjects.put( ast.getObjectID(), ast );
 		}
 		//System.out.println( "done" );
 	 }
@@ -460,6 +452,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	}
 	
 	// Return all enemies for now (Need only to return objects within viewable area)
+	/*
 	public static ArrayList<EnemyShip> getEnemiesWithinViewport()
 	{
 		return enemies;
@@ -480,7 +473,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	{
 		return asteroids;
 	}
-	
+	*/
 	public static SpaceCamera getCamera()
 	{
 		return camera;
@@ -562,6 +555,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 				
 				// Game logic here
 				gameLogic( dt );
+				gameDraw();
 
 				try
 				{
@@ -577,6 +571,10 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 					// Clean up
 				}
 			}
+			
+			// Close game window and exit program.
+			game.dispatchEvent( new WindowEvent(game, WindowEvent.WINDOW_CLOSING) );
+			System.exit( 0 );
 		}
 	}
 	
@@ -603,10 +601,6 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 					// Clean up
 				}
 			}
-			
-			// Close game window and exit program.
-			game.dispatchEvent( new WindowEvent(game, WindowEvent.WINDOW_CLOSING) );
-			System.exit( 0 );
 		}
 	}
 	
@@ -634,6 +628,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			objSelected = null;
 		}
 		
+		/*
 		for( SpaceShip aShip : enemies )
 		{
 			if( !aShip.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
@@ -667,6 +662,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 				}
 			}
 		}
+		*/
 		
 		// Select something on the screen
 		// TODO

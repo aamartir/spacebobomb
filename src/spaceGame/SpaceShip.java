@@ -75,7 +75,7 @@ public class SpaceShip extends SpaceObject
 	// Weapons instance variables
 	private int missileRateOfFireMillis;
 	private long timeOfLastMissileMillis;
-	private ArrayList<Weapon> weapons;
+	//private ArrayList<Weapon> weapons;
 	
 	// Status messages to display on top of spaceship 
 	private ArrayList<StatusMessage> statusMessages;
@@ -88,7 +88,7 @@ public class SpaceShip extends SpaceObject
 		//exhaustImg = SpaceObject.getImgResource( SHIP_EXHAUST_01 );
 		
 		// Spaceship parameters
-		weapons                 = new ArrayList<Weapon>();
+		//weapons                 = new ArrayList<Weapon>();
 		statusMessages			= new ArrayList<StatusMessage>();
 		
 		missileRateOfFireMillis = DT_TO_NEXT_MISSILE_MS;
@@ -307,22 +307,27 @@ public class SpaceShip extends SpaceObject
 		//super.rotate(rotation);
 	}
 	
-	public ArrayList<Weapon> getWeaponsFired()
+	//public ArrayList<Weapon> getWeaponsFired()
 	{
-		return weapons;
+	//	return weapons;
 	}
 	
 	public void fireMissile()
 	{
+		Weapon w;
+		
 		if( System.currentTimeMillis() - timeOfLastMissileMillis >= missileRateOfFireMillis )
 		{
 			double r = Math.sqrt( super.getImgWidth()*super.getImgWidth()/4.0 + super.getImgHeight()*super.getImgHeight()/4.0 );
-			weapons.add( new Missile(this,
-					                 super.getPosX() + super.getImgWidth()/2.0 + (r+1)*Math.cos(Math.toRadians(super.getAngle())), 
-					  	 			 super.getPosY() + super.getImgHeight()/2.0 + (r+1)*Math.sin(Math.toRadians(super.getAngle())),
-						 			 super.getVelocityX(), 
-						 			 super.getVelocityY(),
-						 			 super.getAngle() ));
+			w = new Missile(this,
+			                super.getPosX() + super.getImgWidth()/2.0 + (r+1)*Math.cos(Math.toRadians(super.getAngle())), 
+			  	 			super.getPosY() + super.getImgHeight()/2.0 + (r+1)*Math.sin(Math.toRadians(super.getAngle())),
+				 			super.getVelocityX(), 
+				 			super.getVelocityY(),
+				 			super.getAngle() );
+			
+			// Put missile into spaceObject data structure	 		
+			Game.spaceObjects.put( w.getObjectID(), w );
 
 			timeOfLastMissileMillis = System.currentTimeMillis();
 		}

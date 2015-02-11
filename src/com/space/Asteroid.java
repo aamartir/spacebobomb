@@ -2,6 +2,7 @@ package com.space;
 
 import java.awt.Graphics;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import spaceGame.SpaceObject;
 
@@ -34,6 +35,24 @@ public class Asteroid extends SpaceObject
 		super.drawSpaceObject( g );
 	}
 	
+	public static Asteroid createRandomAsteroid( String asteroidType,
+			                                     double minX, double minY,
+			                                     double maxX, double maxY )
+	{
+		double mass = SpaceObject.randGenerator.nextDouble()*Asteroid.ASTEROID_MASS;
+		
+		double posX = SpaceObject.randGenerator.nextDouble()*(maxX - minX) + minX;
+		double posY = SpaceObject.randGenerator.nextDouble()*(maxY - minY) + minY;
+		
+		double velX = SpaceObject.randGenerator.nextDouble()*(2*ASTEROID_MAX_SPEED) - ASTEROID_MAX_SPEED;
+		double velY = SpaceObject.randGenerator.nextDouble()*(2*ASTEROID_MAX_SPEED) - ASTEROID_MAX_SPEED;
+		
+		double initialAngle = SpaceObject.randGenerator.nextDouble() * 180;
+		double rotationDegPerSec = SpaceObject.randGenerator.nextDouble() * (2*ASTEROID_MAX_TURNING_RATE) - ASTEROID_MAX_TURNING_RATE;
+		
+		return new Asteroid( asteroidType, posX, posY, velX, velY, initialAngle, rotationDegPerSec, mass );
+	}
+	
 	public static void createAsteroid( ArrayList<Asteroid> arr, 
 			                           String asteroidType, 
 			                           double x, double y, 
@@ -44,7 +63,8 @@ public class Asteroid extends SpaceObject
 		arr.add( new Asteroid( asteroidType, x, y, v_x, v_y, initialAngle, rotationDegPerSec, mass) );
 	}
 	
-	public static void createRandomAsteroid( ArrayList<Asteroid> arr, 
+	//public static void createRandomAsteroid( ArrayList<Asteroid> arr, 
+	public static void createRandomAsteroid( HashMap<Integer, SpaceObject> map, 
 											 String asteroidType, 
 											 double minX, double minY, double maxX, double maxY )
 	{
@@ -58,6 +78,7 @@ public class Asteroid extends SpaceObject
 		double rotationDegPerSec = SpaceObject.randGenerator.nextDouble() * (2*ASTEROID_MAX_TURNING_RATE) - ASTEROID_MAX_TURNING_RATE;
 		
 		// Add random asteroid
-		arr.add( new Asteroid(asteroidType, posX, posY, velX, velY, initialAngle, rotationDegPerSec, ASTEROID_MASS) );
+		//arr.add( new Asteroid(asteroidType, posX, posY, velX, velY, initialAngle, rotationDegPerSec, ASTEROID_MASS) );
+		//map.put( new Asteroid(asteroidType, posX, posY, velX, velY, initialAngle, rotationDegPerSec, ASTEROID_MASS) );
 	}
 }
