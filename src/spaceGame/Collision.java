@@ -146,9 +146,6 @@ public class Collision
 			case SpaceObject.ASTEROID_OBJ_TYPE:
 				ret = asteroidCollision( (Asteroid) obj, m );
 				break;
-			case SpaceObject.MISSILE_OBJ_TYPE:
-				ret = missileCollision( m, (Missile) obj ); 
-				break;
 			default:
 				ret = spaceObjectCollision( obj, m );
 		}

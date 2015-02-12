@@ -162,7 +162,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		miniMap = new MiniMap( screenWidth, screenHeight, 100, 255 );
 		
 		// Initialize starField
-		starField = new StarField( 100, -screenWidth, -screenHeight, 2*screenWidth, 2*screenHeight );
+		starField = new StarField( 200, -screenWidth, -screenHeight, 2*screenWidth, 2*screenHeight );
 		
 		// Start logic and rendering threads
 		inGame = true; // Has to be called before start of threads.
@@ -243,11 +243,13 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// ...
 		
 		// Update starField based on player's velocity
+		/*
 		if( Math.abs(playerShip.getVelocityX()) > 0 || 
 		    Math.abs(playerShip.getVelocityY()) > 0 )
 		{
 			starField.moveStarField( -playerShip.getVelocityX(), -playerShip.getVelocityY() );
 		}
+		*/
 		
 		// Last. Move Camera to follow its target
 		camera.updatePosition();
@@ -290,7 +292,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			drawScreenMessage( graphics, "Press Escape key to exit game", 14, 20, 120, Color.YELLOW );
 			
 			// Draw starfield
-			starField.drawStarField( graphics );
+			//starField.drawStarField( graphics );
 						
 			// Draw collision grid for testing purposes
 			//grid.drawGrid( graphics );
@@ -403,12 +405,12 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Add some enemies at random locations (test)
 		EnemyShip ship;
 		
-		for( int i = 0; i < 0; i++ )
+		for( int i = 0; i < 5; i++ )
 		{
 			//EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
 			//enemies.get( i ).followSpaceShip( playerShip );
 			ship = EnemyShip.createEnemyShip( 0, 0, 0, 0, 0, screenWidth, screenHeight );
-			ship.followSpaceShip( playerShip );
+			ship.followAndDestroy( playerShip );
 			
 			// Put object into collection
 			spaceObjects.put( ship.getObjectID(), ship );
@@ -426,7 +428,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Create some asteroids
 		Asteroid ast;
 		
-		for( int i = 0; i < 20; i++ )
+		for( int i = 0; i < 5; i++ )
 		{
 			//Asteroid.createRandomAsteroid( asteroids, Asteroid.ASTEROID_01, 0, 0, screenWidth, screenHeight );
 			ast = Asteroid.createRandomAsteroid( Asteroid.ASTEROID_01, 0, 0, screenWidth, screenHeight );

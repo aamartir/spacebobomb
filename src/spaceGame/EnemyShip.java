@@ -13,12 +13,17 @@ public class EnemyShip extends SpaceShip
 	public static final int    EVADE_STRATEGY             = 4;
 	public static final int    EVADE_AND_ESCAPE_STRATEGY  = 5;
 	
-	public static final double FOLLOW_RADIUS              = 500.0;
-	public static final double ATTACK_RADIUS              = 450.0;
+	public static final double AWARENESS_RADIUS           = 400.0;
+	public static final double FOLLOW_RADIUS              = 400.0;
+	public static final double ATTACK_RADIUS              = 400.0;
 	public static final double PROXIMITY_RADIUS           = 300.0;	
+	
+	public static final int    ENEMY_MIN_RATE_OF_FIRE_MS  = 500;
+	public static final int    ENEMY_MAX_RATE_OF_FIRE_MS  = 5000;
 	
 	// Attack Parameters
 	private int rateOfFire; // in seconds (How many missiles it can fire per second)
+	private int accuracy;   // Angle with respect to target. 0 < accuracy < 180
 	
 	// These variables dictate behavior of enemy
 	private int strategy;
@@ -37,6 +42,10 @@ public class EnemyShip extends SpaceShip
 		
 		strategy = NO_STRATEGY;
 		targetSpaceShip = null;
+		accuracy = SpaceObject.randGenerator.nextInt(35) + 10; // 10 to 45 degrees
+
+		// Set rate of fire
+		setRateOfFire( ENEMY_MAX_RATE_OF_FIRE_MS );
 		
 		// Make the enemies a little slower ( 25% slower )
 		super.setMaxSpeed( 0.80 * SpaceShip.SPACESHIP_MAX_SPEED );
@@ -66,14 +75,15 @@ public class EnemyShip extends SpaceShip
 		{
 			case NO_STRATEGY:
 			case CRUISE_STRATEGY:
-				if( distanceWithRespectTo( Game.getPlayer()) <= FOLLOW_RADIUS )
-					followSpaceShip( Game.getPlayer() );
+				if( distanceWithRespectTo( Game.getPlayer()) <= AWARENESS_RADIUS )
+					followAndDestroy( Game.getPlayer() );
 				
 				break;
 				
+			case FOLLOW_AND_ATTACK_STRATEGY:
 			case FOLLOW_STRATEGY:
 			{
-				if( targetSpaceShip != null && distanceWithRespectTo(targetSpaceShip) <= FOLLOW_RADIUS )
+				if( targetSpaceShip != null && distanceWithRespectTo(targetSpaceShip) <= AWARENESS_RADIUS )
 				{
 					// Angle error
 					double angleErr = getSupplementaryAngle( angleWithRespectTo( targetSpaceShip ) - getAngle() );
@@ -84,21 +94,6 @@ public class EnemyShip extends SpaceShip
 						setSpaceShipAngularThrust( SPACESHIP_MAX_TURNING_THRUST*angleCorrection/45.0 );
 					else
 						setSpaceShipAngularThrust( 0 );
-					
-					/*
-					System.out.println( "angleErr: " + (angleWithRespectTo( targetSpaceShip ) - getAngle()) + 
-							            "suppAngle: " + getSupplementaryAngle( angleWithRespectTo( targetSpaceShip ) - getAngle()) );
-					*/
-					
-					/*
-					System.out.print( angleErr + "\t" );
-					if( SPACESHIP_MAX_TURNING_THRUST*angleCorrection/45.0 >= SPACESHIP_MAX_TURNING_THRUST )
-						System.out.println( "MAX THRUST" );
-					else if( SPACESHIP_MAX_TURNING_THRUST*angleCorrection/45.0 <= -SPACESHIP_MAX_TURNING_THRUST )
-						System.out.println( "-MAX THRUST" );
-					else
-						System.out.println( SPACESHIP_MAX_TURNING_THRUST*angleCorrection/45.0 );	
-					*/
 
 					// Only start moving forward if pointing at the target spaceship
 					if( Math.abs(angleErr) <= 45.0 )
@@ -106,17 +101,29 @@ public class EnemyShip extends SpaceShip
 						// Distance error
 						double distErr = distanceWithRespectTo( Game.playerShip );
 						double distCorrection = distancePID.update( distErr, dt );
-						
+
 						// Move towards user (but avoid collision)
 						if( distErr > PROXIMITY_RADIUS )
 							setSpaceShipThrust( distCorrection );
 						else
 							setSpaceShipThrust( 0 );
+						
+						// Attack ???
+						if( strategy == FOLLOW_AND_ATTACK_STRATEGY )
+						{
+							// Move towards user (but avoid collision)
+							if( distErr <= ATTACK_RADIUS && Math.abs(angleErr) <= accuracy )
+							{
+								//System.out.println( "accuracy: " + accuracy  + ". rof: " + rateOfFire );
+								if( super.fireMissile() )
+									setRateOfFire( SpaceObject.randGenerator.nextInt(ENEMY_MAX_RATE_OF_FIRE_MS - ENEMY_MIN_RATE_OF_FIRE_MS) + ENEMY_MIN_RATE_OF_FIRE_MS );
+							}
+						}
 					}
 				}
 				else
 				{
-					strategy = NO_STRATEGY;
+					strategy = CRUISE_STRATEGY;
 					targetSpaceShip = null;
 					
 					// Stop using thrusters
@@ -246,6 +253,12 @@ public class EnemyShip extends SpaceShip
 	public int getStrategy() 
 	{
 		return strategy;
+	}
+	
+	public void setRateOfFire( int newROF )
+	{
+		rateOfFire = newROF;
+		super.setMissileRateOfFire( newROF );
 	}
 	
 	public static EnemyShip createEnemyShip( double speedX, double speedY,

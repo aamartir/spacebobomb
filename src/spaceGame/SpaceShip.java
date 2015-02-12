@@ -312,7 +312,7 @@ public class SpaceShip extends SpaceObject
 	//	return weapons;
 	}
 	
-	public void fireMissile()
+	public boolean fireMissile()
 	{
 		Weapon w;
 		
@@ -330,7 +330,10 @@ public class SpaceShip extends SpaceObject
 			Game.spaceObjects.put( w.getObjectID(), w );
 
 			timeOfLastMissileMillis = System.currentTimeMillis();
+			return true;
 		}
+		
+		return false;
 	}
 	
 	public void fireBomb()
