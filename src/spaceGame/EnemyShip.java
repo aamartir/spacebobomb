@@ -12,6 +12,7 @@ public class EnemyShip extends SpaceShip
 	public static final int    FOLLOW_AND_ATTACK_STRATEGY = 3;
 	public static final int    EVADE_STRATEGY             = 4;
 	public static final int    EVADE_AND_ESCAPE_STRATEGY  = 5;
+	public static final int    GO_TO_POSITION_STRATEGY    = 6;
 	
 	public static final double AWARENESS_RADIUS           = 400.0;
 	public static final double FOLLOW_RADIUS              = 400.0;
@@ -29,6 +30,10 @@ public class EnemyShip extends SpaceShip
 	private int strategy;
 	private SpaceShip targetSpaceShip;
 	
+	// Automatic motion and AI fields
+	private double targetPosX;
+	private double targetPosY;
+		
 	// Variables used for motion
 	private PID directionPID;
 	private PID distancePID;
@@ -71,6 +76,11 @@ public class EnemyShip extends SpaceShip
 	// Enemy AI state machine
 	public void AI( double dt )
 	{
+		double distErr;
+		double distCorrection;
+		double angleErr;
+		double angleCorrection;
+		
 		switch( strategy )
 		{
 			case NO_STRATEGY:
@@ -79,15 +89,42 @@ public class EnemyShip extends SpaceShip
 					followAndDestroy( Game.getPlayer() );
 				
 				break;
+			case GO_TO_POSITION_STRATEGY:
+				// Angle error
+				angleErr = getSupplementaryAngle( angleWithRespectTo(targetPosX, targetPosY) - getAngle() );
+				angleCorrection = directionPID.update( angleErr, dt );
+
+				// Set angular thrust to face playerShip
+				if( Math.abs(angleErr) > 1.0 ) 
+					setSpaceShipAngularThrust( SPACESHIP_MAX_TURNING_THRUST*angleCorrection/45.0 );
+				else
+					setSpaceShipAngularThrust( 0 );
 				
+				// Only start moving forward if pointing at the target spaceship
+				if( Math.abs(angleErr) <= 5.0 )
+				{
+					// Distance error
+					distErr = distanceWithRespectTo( targetPosX, targetPosY );
+					distCorrection = distancePID.update( distErr, dt );
+					
+					// Move towards user (but avoid collision)
+					if( distErr > PROXIMITY_RADIUS )
+						setSpaceShipThrust( distCorrection );
+					else
+						setSpaceShipThrust( 0 );
+				}
+				else 
+					setSpaceShipThrust( 0 );
+				
+				break;
 			case FOLLOW_AND_ATTACK_STRATEGY:
 			case FOLLOW_STRATEGY:
 			{
 				if( targetSpaceShip != null && distanceWithRespectTo(targetSpaceShip) <= AWARENESS_RADIUS )
 				{
 					// Angle error
-					double angleErr = getSupplementaryAngle( angleWithRespectTo( targetSpaceShip ) - getAngle() );
-					double angleCorrection = directionPID.update( angleErr, dt );
+					angleErr = getSupplementaryAngle( angleWithRespectTo( targetSpaceShip ) - getAngle() );
+					angleCorrection = directionPID.update( angleErr, dt );
 					
 					// Set angular thrust to face playerShip
 					if( Math.abs(angleErr) > 5 ) 
@@ -99,8 +136,8 @@ public class EnemyShip extends SpaceShip
 					if( Math.abs(angleErr) <= 45.0 )
 					{
 						// Distance error
-						double distErr = distanceWithRespectTo( Game.playerShip );
-						double distCorrection = distancePID.update( distErr, dt );
+						distErr = distanceWithRespectTo( Game.playerShip );
+						distCorrection = distancePID.update( distErr, dt );
 
 						// Move towards user (but avoid collision)
 						if( distErr > PROXIMITY_RADIUS )
@@ -220,6 +257,13 @@ public class EnemyShip extends SpaceShip
 			strategy = CRUISE_STRATEGY;
 		//else // Otherwise move as far away as possible from other
 		//	setDirectionAngle( angleWithRespectTo(other) - 180 );
+	}
+	
+	public void goTo( double x, double y )
+	{
+		targetPosX = x;
+		targetPosY = y;
+		strategy = GO_TO_POSITION_STRATEGY;
 	}
 	
 	public boolean isFollowing()

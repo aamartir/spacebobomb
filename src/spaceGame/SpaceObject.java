@@ -588,6 +588,14 @@ public class SpaceObject
 	}
 	*/
 	
+	public double distanceWithRespectTo( double x, double y )
+	{
+		double diffX = (this.getPosX() + this.getImgWidth()/2.0) - x;
+		double diffY = (this.getPosY() + this.getImgHeight()/2.0) - y;
+		
+		return Math.sqrt( diffX*diffX + diffY*diffY );
+	}
+	
 	public double distanceWithRespectTo( SpaceObject other )
 	{
 		double diffX = (this.getPosX() + this.getImgWidth()/2.0) - (other.getPosX() + other.getImgWidth()/2.0);
@@ -604,12 +612,15 @@ public class SpaceObject
 		return checkAngleBoundaries((Math.atan2(diffY, diffX) + Math.PI)*180/Math.PI); // target angle
 	}
 	
-	public static double angleWithRespectToPoint( SpaceObject obj, double x, double y )
+	public double angleWithRespectTo( double x, double y )
 	{
-		return Math.atan2( y - obj.getPosY() + obj.getImgHeight()/2.0, x - obj.getPosX() + obj.getImgWidth()/2.0 );
+		double diffX = x - this.getPosX() + this.getImgWidth()/2.0;
+		double diffY = y - this.getPosY() + this.getImgHeight()/2.0;
+		
+		return checkAngleBoundaries( Math.atan2(diffY, diffX)*180/Math.PI );
 	}
 	
-	public static double angleWithRespectToPoint( double x1, double y1, double x2, double y2 )
+	public static double angleWithRespectTo( double x1, double y1, double x2, double y2 )
 	{
 		return Math.atan2(y2-y1, x2-x1)*180/Math.PI;
 	}
