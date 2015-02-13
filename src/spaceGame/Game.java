@@ -89,7 +89,8 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	// Reusable variales
 	private static Iterator<Map.Entry<Integer, SpaceObject>> it;
 	private static SpaceObject obj;
-	
+	private static Quadrant q;
+
 	public static void main( String[] args )
 	{
 		game = new Game();
@@ -354,11 +355,8 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			// TODO
 			
 			// Draw mouse selector box
-			/*
 			if( selector.isVisible() )
 				selector.drawSelector( (Graphics2D) graphics );
-			*/
-						
 		}
 		finally
 		{
@@ -399,22 +397,17 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Initialize player spaceship in the middle of the screen
 		playerShip = new PlayerShip( screenWidth/2, screenHeight/2 );
 		
-		// Initialize enemie arraylist.
-		//enemies = new ArrayList<EnemyShip>();
-		
 		// Add some enemies at random locations (test)
 		EnemyShip ship;
 		
-		for( int i = 0; i < 1; i++ )
+		for( int i = 0; i < 10; i++ )
 		{
 			//EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
 			//enemies.get( i ).followSpaceShip( playerShip );
 			ship = EnemyShip.createEnemyShip( 0, 0, 0, 0, 0, screenWidth, screenHeight );
-			
-			//if( i == 0 )
-				ship.goTo( 0, 0 );
-			//else
-				//ship.followAndDestroy( playerShip );
+			//ship = new EnemyShip( 100, 100, 0, 0, 0 );
+
+			ship.followAndDestroy( playerShip );
 			
 			// Put object into collection
 			spaceObjects.put( ship.getObjectID(), ship );
@@ -617,9 +610,11 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 	
 	public void mouseReleased( MouseEvent e )
 	{
-		//selector.setVisible( true );
-		selector.setCoordinates( e.getX() - SpaceObjectSelector.SELECTOR_SIZE/2.0 + camera.getViewportMinX() + playerShip.getImgWidth()/2.0, 
-				                 e.getY() - SpaceObjectSelector.SELECTOR_SIZE/2.0 + camera.getViewportMinY() + playerShip.getImgHeight()/2.0);
+		double x = e.getX() - SpaceObjectSelector.SELECTOR_SIZE/2.0 /*+ camera.getViewportMinX()*/ + playerShip.getImgWidth()/2.0;
+		double y = e.getY() - SpaceObjectSelector.SELECTOR_SIZE/2.0 /*+ camera.getViewportMinY()*/ + playerShip.getImgHeight()/2.0;
+		
+		selector.setVisible( true );
+		selector.setCoordinates( x + camera.getViewportMinX(), y + camera.getViewportMinY() );
 		
 		//System.out.println( "(" + e.getY() + "," + e.getX() + ")." + camera.getViewportMinY() + ". playerY: " + playerShip.getPosY() );
 		
@@ -633,42 +628,20 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 			objSelected.unselect();
 			objSelected = null;
 		}
-		
-		/*
-		for( SpaceShip aShip : enemies )
+
+		if( (q = grid.getQuadrantPerPoint( x, y )) != null )
 		{
-			if( !aShip.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
-                                        camera.getViewportMaxX(), camera.getViewportMaxY()) )
+			it = q.objectsInQuadrant.entrySet().iterator();
+			while( it.hasNext() )
 			{
-				continue;
-			}
-			
-			if( selector.isSelecting(aShip) )
-			{
-				objSelected = aShip;
-				aShip.select();
-			}
-		}
-			
-		// Select other objects
-		if( objSelected == null )
-		{
-			for( Asteroid asteroid : asteroids )
-			{
-				if( !asteroid.isWithinViewport(camera.getViewportMinX(), camera.getViewportMinY(), 
-                        					   camera.getViewportMaxX(), camera.getViewportMaxY()) )
+				objSelected = it.next().getValue();
+				if( selector.isSelecting(objSelected) )
 				{
-					continue;
-				}
-				
-				if( selector.isSelecting(asteroid) )
-				{
-					objSelected = asteroid;
-					asteroid.select();
+					objSelected.select();
+					break;
 				}
 			}
 		}
-		*/
 		
 		// Select something on the screen
 		// TODO
