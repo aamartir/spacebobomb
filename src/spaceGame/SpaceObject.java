@@ -131,8 +131,8 @@ public class SpaceObject
 		// Update position with linear velocities
 		pos_x += v_x * dt;
 		pos_y += v_y * dt;
-		
-		if( pos_x != lastPosX || pos_y != lastPosY )
+	
+		//if( (int)pos_x != (int)lastPosX || (int)pos_y != (int)lastPosY ) // <-- This if stmt doesn't work
 		{
 			// Update quadrant location of object only when object changes position
 			Game.grid.updateObjectGridQuadrant( this );
@@ -387,6 +387,16 @@ public class SpaceObject
 	public double getPosX() 
 	{
 		return this.pos_x;
+	}
+	
+	public double getLastPosX()
+	{
+		return lastPosX;
+	}
+	
+	public double getLastPosY()
+	{
+		return lastPosY;
 	}
 	
 	public void setPosX(int x) 

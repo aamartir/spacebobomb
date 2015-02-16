@@ -11,9 +11,13 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 import java.util.ArrayList;
+import java.util.Iterator;
+
 import javax.swing.ImageIcon;
+
 import Mathematics.MyMath;
 import Mathematics.Vector2D;
+
 import com.ship.effects.StatusMessage;
 import com.weapons.Missile;
 import com.weapons.Weapon;
@@ -48,6 +52,7 @@ public class SpaceShip extends SpaceObject
 	public static final String SPACESHIP_01  = "shipBlue.png";
 	public static final String SPACESHIP_02  = "shipStyle3_small.png";
 	public static final String SPACESHIP_03  = "shipRed.png";
+	public static final String SPACESHIP_04  = "shipStyle01.png";	
 		
 	private AffineTransform transf;
 	private static AffineTransform savedTransform;
@@ -210,7 +215,7 @@ public class SpaceShip extends SpaceObject
 			val = (maxFuelCapacity - fuel);
 		
 		fuel += val;
-		newStatusMessage( getPosX() - getImgWidth()/2.0, getPosY(), "+" + val+ " Fuel", Color.YELLOW );
+		newStatusMessage( getPosX() - getImgWidth()/2.0, getPosY(), "+" + (int)(Math.round(val)) + " Fuel", Color.YELLOW );
 	}
 	
 	public double getCurrentFuel()
@@ -295,10 +300,16 @@ public class SpaceShip extends SpaceObject
 	public void updateSpaceShipStatusMessages( double dt )
 	{
 		// Update status messages
-		for( int i = 0; i < statusMessages.size(); i++ )
+		Iterator<StatusMessage> it = statusMessages.iterator();
+		StatusMessage msg;
+		
+		while( it.hasNext() )
 		{
-			if( !statusMessages.get(i).isCompleted() )
-				statusMessages.get(i).updateStatusMessage( dt );
+			msg = it.next();
+			if( !msg.isCompleted() )
+				msg.updateStatusMessage( dt );
+			else
+				it.remove();
 		}
 	}
 	
@@ -593,7 +604,7 @@ public class SpaceShip extends SpaceObject
 		life += val;
 		
 		// Display status message
-		newStatusMessage( getPosX() - getImgWidth()/2.0, getPosY(), "+" + val + " HP", StatusMessage.STATUS_MSG_GREEN_COLOR );
+		newStatusMessage( getPosX() - getImgWidth()/2.0, getPosY(), "+" + (int)(Math.round(val)) + " HP", StatusMessage.STATUS_MSG_GREEN_COLOR );
 	}
 	
 	public void increaseMaxLife( double val )

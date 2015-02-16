@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /*
  * A objectsInQuadrant is a segment, or SubArea of Grid. This will be useful
@@ -14,7 +15,7 @@ import java.util.HashMap;
 public class Quadrant 
 {
 	private Grid parentGrid;
-	public HashMap<Integer, SpaceObject> objectsInQuadrant;
+	public ConcurrentHashMap<Integer, SpaceObject> objectsInQuadrant;
 	public int objCounter = 0;
 	public int quadrantId; // Block Identifier
 	
@@ -33,7 +34,7 @@ public class Quadrant
 		this.w = w;
 		this.h = h;
 		
-		objectsInQuadrant = new HashMap<Integer, SpaceObject>();
+		objectsInQuadrant = new ConcurrentHashMap<Integer, SpaceObject>();
 		quadrantId = id;
 		
 		//System.out.println("New Quadrant\nx = " + x0 + "\ny = " + y0 + "\nhash = " + quadrantId);

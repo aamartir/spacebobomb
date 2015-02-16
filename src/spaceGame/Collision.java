@@ -161,9 +161,9 @@ public class Collision
 		{
 			double tmp = a.getCurrentLife();
 			
-			a.decreaseLife( b.getCurrentLife() );
+			a.decreaseLife( b.getCurrentLife() );	
 			b.decreaseLife( tmp );
-			
+
 			return true;
 		}
 		
@@ -188,6 +188,12 @@ public class Collision
 		{
 			ship.decreaseLife( missile.getDmg() );
 			missile.destroySpaceObject( false );
+			
+			if( ship.isDestroyed() )
+			{
+				missile.getSourceSpaceShip().addFuel( 20 ); 
+				missile.getSourceSpaceShip().addLife( 20 ); 
+			}
 			
 			return true;
 		}

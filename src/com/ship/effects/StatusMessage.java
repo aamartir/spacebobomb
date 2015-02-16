@@ -13,7 +13,7 @@ public class StatusMessage
 	private static final Font   STATUS_MSG_DEFAULT_FONT  =  new Font( "ARIAL", Font.BOLD, 18 );
 	
 	private static final double STATUS_MSG_VEL           =  0.05;
-	private static final double STATUS_MSG_TOTAL_DELTA_Y =  30.0;
+	private static final double STATUS_MSG_TOTAL_DELTA_Y =  40.0;
 	private static final double STATUS_MSG_DELTA_ALPHA   =  0.1;
 	
 	private static int msgCounter;

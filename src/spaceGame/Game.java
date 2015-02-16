@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.ship.effects.Shockwave;
 import com.ship.effects.RotatingTrianglesTarget;
+import com.ship.effects.StatusMessage;
 import com.space.Asteroid;
 import com.space.StarField;
 import com.weapons.Weapon;
@@ -673,13 +674,15 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 				if(key == KeyEvent.VK_W)
 					playerShip.setSpaceShipThrust( playerShip.getMaxThrust() );
 				else if(key == KeyEvent.VK_A)
-					playerShip.setSpaceShipAngularThrust( -playerShip.getMaxAngularThrust());
+					playerShip.setSpaceShipAngularThrust( -playerShip.getMaxAngularThrust() );
 				else if(key == KeyEvent.VK_D)
 					playerShip.setSpaceShipAngularThrust( playerShip.getMaxAngularThrust() );
 				else if( key == KeyEvent.VK_SPACE )
 					playerShip.fireMissile();
 				else if( key == KeyEvent.VK_K ) // This is to test different features
 					playerShip.decreaseLife(10);
+				else if( key == KeyEvent.VK_NUMPAD0 )
+					playerShip.newStatusMessage( (playerShip.getPosX() - playerShip.getImgWidth()/2.0), playerShip.getPosY(), "TEST MESSAGE", StatusMessage.STATUS_MSG_RED_COLOR );
 			}
 		}
 		
