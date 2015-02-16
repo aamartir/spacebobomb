@@ -307,14 +307,14 @@ public class EnemyShip extends SpaceShip
 	
 	public static EnemyShip createEnemyShip( double speedX, double speedY,
 											 double initialAngle,
-			                                 double minX, double minY, 
-			                                 double maxX, double maxY )
+											 double offsetX, double offsetY,
+			                                 double minDistanceFromPlayer, double maxDistanceFromPlayer )
 	{
 		// random point in space within given boundaries
-		double posX = SpaceObject.randGenerator.nextDouble()*(maxX - minX) + minX;
-		double posY = SpaceObject.randGenerator.nextDouble()*(maxY - minY) + minY;
+		double r = SpaceObject.randGenerator.nextDouble()*(maxDistanceFromPlayer-minDistanceFromPlayer) + minDistanceFromPlayer;
+		double theta = SpaceObject.randGenerator.nextDouble()*2.0*Math.PI;
 		
-		return new EnemyShip( posX, posY, speedX, speedY, initialAngle );
+		return new EnemyShip( r*Math.cos(theta) + offsetX, r*Math.sin(theta) + offsetY, speedX, speedY, initialAngle );
 	}
 	
 	//public static void createEnemyShip( ArrayList<EnemyShip> arr,

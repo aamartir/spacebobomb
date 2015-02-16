@@ -448,6 +448,14 @@ public class SpaceObject
 		return true;
 	}
 	
+	public boolean isInCameraView( SpaceCamera cam )
+	{
+		if( cam != null )
+			return isWithinViewport( cam.getViewportMinX(), cam.getViewportMinY(), cam.getViewportMaxX(), cam.getViewportMaxY() );
+		
+		return isWithinViewport( 0, 0, Game.screenWidth, Game.screenHeight );
+	}
+	
 	public Rectangle getBounds()
 	{
 		return new Rectangle( (int) pos_x, (int) pos_y, getImgWidth(), getImgHeight() );

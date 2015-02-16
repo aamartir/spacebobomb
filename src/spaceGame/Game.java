@@ -161,6 +161,7 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		
 		// Initialize minimap
 		miniMap = new MiniMap( screenWidth, screenHeight, 100, 255 );
+		miniMap.increaseMapHorizon( 0.50 );
 		
 		// Initialize starField
 		starField = new StarField( 200, -screenWidth, -screenHeight, 2*screenWidth, 2*screenHeight );
@@ -325,11 +326,8 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 				obj = it.next().getValue();
 				
 				// Dont draw object if it is outside of the viewing area
-				if( !obj.isWithinViewport( camera.getViewportMinX(), camera.getViewportMinY(), 
-   					                       camera.getViewportMaxX(), camera.getViewportMaxY()) )
-				{
+				if( !obj.isInCameraView(camera) )
 					continue;
-				}
 				
 				// else 
 				switch( obj.getObjectType() )
@@ -400,11 +398,11 @@ public class Game extends JFrame implements MouseListener //implements ActionLis
 		// Add some enemies at random locations (test)
 		EnemyShip ship;
 		
-		for( int i = 0; i < 10; i++ )
+		for( int i = 0; i < 20; i++ )
 		{
 			//EnemyShip.createEnemyShip( enemies, 0, 0, 10, 0, 0, 2*screenWidth, 2*screenHeight );
 			//enemies.get( i ).followSpaceShip( playerShip );
-			ship = EnemyShip.createEnemyShip( 0, 0, 0, 0, 0, screenWidth, screenHeight );
+			ship = EnemyShip.createEnemyShip( 0, 0, 0, playerShip.getPosX(), playerShip.getPosY(), 1000, 5000 );
 			//ship = new EnemyShip( 100, 100, 0, 0, 0 );
 
 			ship.followAndDestroy( playerShip );
